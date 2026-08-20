@@ -3,7 +3,7 @@
 <title>แยกอโศก — เกมขับรถที่รถไม่ขยับ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&family=Archivo+Black&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -56,6 +56,22 @@
     border:1px solid var(--line);border-radius:18px;padding:22px 20px;
   }
   .card h1{margin:0 0 2px;font-size:25px;letter-spacing:-.4px}
+
+  /* ---------- the cover: BANGKOK CAR RACE ---------- */
+  #cover{margin:-8px -6px 15px;display:block}
+  #cover svg{display:block;width:100%;height:auto}
+  #cover .strip{
+    margin:11px auto 0;max-width:340px;
+    padding:7px 12px;border-radius:8px;text-align:center;
+    background:linear-gradient(180deg,#1f7fb8,#125a86);
+    border:1px solid rgba(255,255,255,.3);
+    font-size:13.5px;font-weight:700;color:#fff;
+    box-shadow:0 3px 10px rgba(0,0,0,.5);
+  }
+  #cover .sub{
+    margin:10px 0 0;text-align:center;
+    font-size:12px;letter-spacing:.3px;color:var(--ink-dim);
+  }
   .card h2{margin:0 0 3px;font-size:21px}
   .tag{font-size:12px;color:var(--ink-dim);margin:0 0 16px}
   .card p{margin:0 0 12px;font-size:14px;line-height:1.75;color:#c3ccd6}
@@ -100,8 +116,71 @@
 
 <div class="veil" id="v-start">
   <div class="card">
-    <h1>แยกอโศก</h1>
-    <p class="tag">เกมจำลองการขับรถในกรุงเทพ · ไม่เน้นสนุก</p>
+    <div id="cover">
+      <svg viewBox="0 0 420 194" role="img" aria-label="Bangkok Car Race">
+        <defs>
+          <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffffff"/><stop offset=".40" stop-color="#f2f7fb"/>
+            <stop offset=".52" stop-color="#8ba0b3"/><stop offset=".66" stop-color="#dde6ee"/>
+            <stop offset="1" stop-color="#ffffff"/>
+          </linearGradient>
+          <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffe887"/><stop offset=".44" stop-color="#ffc32e"/>
+            <stop offset=".62" stop-color="#f2861a"/><stop offset="1" stop-color="#ffd554"/>
+          </linearGradient>
+          <pattern id="check" width="14" height="14" patternUnits="userSpaceOnUse">
+            <rect width="14" height="14" fill="#0e151c"/>
+            <rect width="7" height="7" fill="#f2f5f8"/>
+            <rect x="7" y="7" width="7" height="7" fill="#f2f5f8"/>
+          </pattern>
+        </defs>
+
+        <!-- Bangkok skyline: towers, a prang, temple roofs -->
+        <g fill="#05090d">
+          <rect x="4" y="30" width="23" height="34"/><rect x="29" y="40" width="15" height="24"/>
+          <rect x="46" y="20" width="18" height="44"/><rect x="66" y="36" width="13" height="28"/>
+          <rect x="88" y="44" width="11" height="20"/><rect x="102" y="50" width="26" height="14"/>
+          <rect x="292" y="46" width="19" height="18"/><rect x="314" y="40" width="13" height="24"/>
+          <rect x="332" y="32" width="16" height="32"/><rect x="351" y="18" width="21" height="46"/>
+          <rect x="376" y="36" width="14" height="28"/><rect x="393" y="28" width="23" height="36"/>
+          <polygon points="150,64 150,40 158,12 166,40 166,64"/>
+          <polygon points="139,64 139,45 145,29 151,45 151,64"/>
+          <polygon points="165,64 165,45 171,29 177,45 177,64"/>
+          <rect x="135" y="54" width="46" height="10"/>
+          <rect x="156.5" y="2" width="3" height="12"/>
+          <polygon points="198,64 198,44 218,26 238,44 238,64"/>
+          <polygon points="202,46 218,34 234,46"/>
+          <polygon points="256,64 256,38 264,10 272,38 272,64"/>
+          <rect x="249" y="52" width="30" height="12"/>
+          <rect x="262.5" y="0" width="3" height="12"/>
+        </g>
+
+        <!-- Thai flag rake above the wordmark, and a chequered flag beside it -->
+        <polygon points="26,68 208,68 190,80 8,80"  fill="#c8102e"/>
+        <polygon points="216,68 308,68 290,80 198,80" fill="#eef3f7"/>
+        <polygon points="316,68 412,68 394,80 298,80" fill="#1c3f94"/>
+
+        <!-- the wordmark. paint-order puts the heavy keyline behind the fill,
+             textLength locks the width whichever heavy face actually loads -->
+        <g transform="skewX(-9)"
+           font-family="'Archivo Black',Impact,'Arial Black','Haettenschweiler',sans-serif"
+           font-weight="900" text-anchor="middle" paint-order="stroke"
+           stroke="#08111c" stroke-linejoin="round">
+          <text x="216" y="130" font-size="62" textLength="368" lengthAdjust="spacingAndGlyphs"
+                fill="#08111c" stroke-width="14" transform="translate(0 5)">BANGKOK</text>
+          <text x="216" y="130" font-size="62" textLength="368" lengthAdjust="spacingAndGlyphs"
+                fill="url(#steel)" stroke-width="11">BANGKOK</text>
+          <text x="212" y="176" font-size="42" textLength="234" lengthAdjust="spacingAndGlyphs"
+                fill="#08111c" stroke-width="12" transform="translate(0 5)">CAR RACE</text>
+          <text x="212" y="176" font-size="42" textLength="234" lengthAdjust="spacingAndGlyphs"
+                fill="url(#gold)" stroke-width="9">CAR RACE</text>
+        </g>
+        <polygon points="330,150 416,150 402,176 316,176" fill="url(#check)"/>
+        <polygon points="22,150 78,150 64,176 8,176" fill="#c8102e" opacity=".9"/>
+      </svg>
+      <div class="strip">กรุงเทพฯ…ชีวิตดีๆ ที่ลงตัว</div>
+      <p class="sub">ด่าน 1 · แยกอโศก — เกมที่รถไม่ขยับ ไม่เน้นสนุก</p>
+    </div>
     <p>คุณอยู่บนถนนอโศกมนตรี ห่างจากเส้นหยุดราว <b><span id="c-dist"></span> เมตร</b><br>
       ไฟแดงนาน <b><span id="c-red"></span> วินาที</b> ·
       ไฟเขียวปล่อยแค่ <b><span id="c-green"></span> วินาที</b>
@@ -186,6 +265,7 @@ const CFG = {
   TRAIN_EVERY: [16, 23],
   TRAIN_CROSS: 2.0,     // seconds to cross the whole screen
   TRAIN_TEXT: "กรุงเทพ ชีวิตดีๆ ที่ลงตัว",
+  BANNER_TEXT: "กรุงเทพฯ…ชีวิตดีๆ ที่ลงตัว",   // hung on the viaduct, always there
 
   /* --- flavour */
   CLOCK_START: 17 * 3600 + 42 * 60,
@@ -386,6 +466,13 @@ const KINDS = [
 ];
 
 let nextId = 1;
+const PLATE_LETTERS = "กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรลวศษสหฬอฮ";
+function plate() {
+  const a = PLATE_LETTERS[ri(0, PLATE_LETTERS.length - 1)];
+  const b = PLATE_LETTERS[ri(0, PLATE_LETTERS.length - 1)];
+  return `${ri(1, 9)}${a}${b} ${ri(1000, 9999)}`;
+}
+
 /* every driver gets a personal standstill gap. The generous ones are the
    holes you will spend the whole game hunting for. */
 function gapPref() {
@@ -397,7 +484,7 @@ function makeCar(lane, s) {
   return {
     id: nextId++, lane, s, v: 0,
     len: k.len, w: k.w, kind: k.t, col: k.col, win: k.win,
-    s0: gapPref(), react: rr(CFG.REACT[0], CFG.REACT[1]),
+    s0: gapPref(), react: rr(CFG.REACT[0], CFG.REACT[1]), plate: plate(),
     wake: 0, brake: 0, honkAt: 0, isPlayer: false, isBus: false,
   };
 }
@@ -405,8 +492,10 @@ function makeBus(lane, s) {
   return {
     id: nextId++, lane, s, v: 0,
     len: 11.8, w: 2.5, kind: "bus", col: "#d8562f", win: "#1d2429",
-    s0: 2.0, react: 3.4, wake: 0, brake: 0, honkAt: 0,
+    s0: 2.0, react: 3.4, wake: 0, brake: 0, honkAt: 0, plate: plate(),
     isPlayer: false, isBus: true, dwell: rr(16, 34),
+    route: pick(["136", "38", "2", "511", "ท่าน้ำ"]),
+    dest: pick(["อ่อนนุช - หมอชิต", "คลองเตย - สนามหลวง", "อโศก - บางกะปิ"]),
   };
 }
 
@@ -451,6 +540,7 @@ function newGame(round) {
   Object.assign(p, {
     isPlayer: true, kind: "sedan", col: "#ff5a52", win: "#2a1416",
     len: 4.4, w: 1.8, s0: 1.1, react: 0, weave: null, cd: 0, dist0: CFG.START_S,
+    plate: "BKK 2567",
   });
   G.player = p;
   G.lanes[p.lane].push(p);
@@ -1045,10 +1135,16 @@ function drawCar(c, xOverride) {
       ctx.fillRect(x0 + w * .06, y0 + h * (.22 + i * .14), w * .10, h * .10);
       ctx.fillRect(x0 + w * .84, y0 + h * (.22 + i * .14), w * .10, h * .10);
     }
-    ctx.fillStyle = "rgba(255,255,255,.5)";
-    ctx.font = FONT(600, Math.max(7, w * .30));
+    /* route blind: number and where it is theoretically going */
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText("ปอ.", x, y0 + h * .55);
+    ctx.fillStyle = "rgba(255,240,190,.92)";
+    ctx.font = FONT(700, Math.max(8, w * .42));
+    ctx.fillText(c.route, x, y0 + h * .46);
+    if (w > 30) {
+      ctx.fillStyle = "rgba(255,255,255,.45)";
+      ctx.font = FONT(400, Math.max(6, w * .21));
+      ctx.fillText(c.dest, x, y0 + h * .58);
+    }
     return;
   }
 
@@ -1070,6 +1166,18 @@ function drawCar(c, xOverride) {
   if (c.kind === "taxi") {
     ctx.fillStyle = "rgba(255,255,255,.85)";
     ctx.fillRect(x - w * .14, y0 + h * .30, w * .28, 3);
+  }
+
+  /* licence plate on the tail. Only legible on the wider sprites, but the
+     white slab reads as a plate at any size. */
+  const pw = w * .52, ph2 = Math.max(2.6, h * .075);
+  ctx.fillStyle = "rgba(238,242,246,.92)";
+  rrect(x - pw / 2, y0 + h - ph2 - 1.5, pw, ph2, 1.5); ctx.fill();
+  if (pw > 22) {
+    ctx.fillStyle = "rgba(20,28,38,.9)";
+    ctx.font = FONT(700, ph2 * .82);
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(c.plate, x, y0 + h - ph2 * .45 - 1.5);
   }
 
   if (c.isPlayer) {
@@ -1157,18 +1265,78 @@ function drawSignal() {
       ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.3); ctx.fill();
       ctx.shadowBlur = 0;
     });
+
+    /* the digital countdown bolted beside the head. Like the real ones it
+       only wakes up near the end of the red, so most of your wait is still
+       spent not knowing. */
+    const dw = boxW * 1.55, dh = r * 2.4;
+    const dx = side < 0 ? px - dw - 4 : px + boxW + 4, dy = py + boxH - dh;
+    ctx.fillStyle = "#0a0e12";
+    rrect(dx, dy, dw, dh, 3); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,.10)"; ctx.lineWidth = 1;
+    rrect(dx + .5, dy + .5, dw - 1, dh - 1, 3); ctx.stroke();
+    const left = ph === "RED" ? CFG.RED - G.signal.tp
+               : ph === "GREEN" ? G.signal.green - G.signal.tp
+               : CFG.YELLOW - G.signal.tp;
+    const shown = (ph === "RED" && left > 15) ? "--"
+                : String(Math.max(0, Math.ceil(left))).padStart(2, "0");
+    ctx.fillStyle = ph === "GREEN" ? "#3fe08a" : "#ff5a3c";
+    ctx.font = FONT(700, dh * 0.66);
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = dh * 0.5;
+    ctx.fillText(shown, dx + dw / 2, dy + dh * 0.54);
+    ctx.shadowBlur = 0;
   }
 }
 
+/* The banner bolted to the near fascia of the viaduct. It is the whole joke
+   of the game, so it is permanent scenery rather than something that only
+   shows up when a train happens to pass. */
+function drawBanner(x0, y0, w, h) {
+  const g = ctx.createLinearGradient(0, y0, 0, y0 + h);
+  g.addColorStop(0, "#1f7fb8"); g.addColorStop(.5, "#1a6d9e"); g.addColorStop(1, "#125a86");
+  ctx.fillStyle = g;
+  ctx.fillRect(x0, y0, w, h);
+
+  /* the diamond weave every Bangkok city banner has */
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x0, y0, w, h); ctx.clip();
+  ctx.strokeStyle = "rgba(255,255,255,.09)"; ctx.lineWidth = 1;
+  const d = Math.max(7, h * 0.42);
+  for (let i = -h; i < w + h; i += d) {
+    ctx.beginPath(); ctx.moveTo(x0 + i, y0); ctx.lineTo(x0 + i + h, y0 + h); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x0 + i + h, y0); ctx.lineTo(x0 + i, y0 + h); ctx.stroke();
+  }
+  ctx.restore();
+
+  /* frame + the bolts holding it on */
+  ctx.strokeStyle = "rgba(255,255,255,.28)"; ctx.lineWidth = 1;
+  ctx.strokeRect(x0 + 1.5, y0 + 1.5, w - 3, h - 3);
+  ctx.fillStyle = "rgba(10,16,22,.55)";
+  for (const bx of [x0 + 6, x0 + w - 6]) {
+    ctx.beginPath(); ctx.arc(bx, y0 + h * .5, Math.max(1.4, h * .09), 0, 6.3); ctx.fill();
+  }
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = FONT(700, clamp(h * 0.56, 8, 22));
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.shadowColor = "rgba(0,0,0,.5)"; ctx.shadowBlur = 3;
+  ctx.fillText(CFG.BANNER_TEXT, x0 + w / 2, y0 + h * 0.54);
+  ctx.shadowBlur = 0;
+}
+
 function drawSkytrain() {
-  /* the viaduct runs along Sukhumvit, straight over the junction */
+  /* the viaduct runs along Sukhumvit, straight over the junction. The upper
+     band carries the track, the lower band carries the banner. */
   const jy0 = y_of(CFG.JUNCTION_END), jy1 = y_of(CFG.STOP_LINE);
   const cy = (jy0 + jy1) / 2;
-  const bh = Math.max(26, (jy1 - jy0) * 0.36);
+  const bh = Math.max(34, (jy1 - jy0) * 0.46);
   const y0 = cy - bh / 2;
+  const trackH = bh * 0.60;                                 // deck proper
+  const banY = y0 + trackH, banH = bh - trackH;
 
-  ctx.fillStyle = "rgba(0,0,0,.42)";                        // deck shadow
-  ctx.fillRect(0, y0 + 8, W, bh);
+  ctx.fillStyle = "rgba(0,0,0,.42)";                        // structure shadow
+  ctx.fillRect(0, y0 + 9, W, bh);
 
   ctx.fillStyle = "#333c45";                                // piers
   for (let i = 0; i < 5; i++) {
@@ -1178,20 +1346,28 @@ function drawSkytrain() {
     ctx.fillStyle = "#333c45";
   }
 
-  const g = ctx.createLinearGradient(0, y0, 0, y0 + bh);     // deck
+  const g = ctx.createLinearGradient(0, y0, 0, y0 + trackH); // deck
   g.addColorStop(0, "#4c5765"); g.addColorStop(.48, "#3a444f"); g.addColorStop(1, "#2b333b");
-  ctx.fillStyle = g; ctx.fillRect(0, y0, W, bh);
+  ctx.fillStyle = g; ctx.fillRect(0, y0, W, trackH);
   ctx.fillStyle = "rgba(255,255,255,.16)"; ctx.fillRect(0, y0, W, 2.5);
-  ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.fillRect(0, y0 + bh - 2.5, W, 2.5);
   ctx.fillStyle = "rgba(200,215,228,.24)";                   // rails
-  ctx.fillRect(0, y0 + bh * .26, W, 2); ctx.fillRect(0, y0 + bh * .70, W, 2);
+  ctx.fillRect(0, y0 + trackH * .30, W, 2);
+  ctx.fillRect(0, y0 + trackH * .74, W, 2);
 
-  if (!G.train) return;
+  if (G.train) drawTrain(G.train, y0, trackH);
 
-  const tr = G.train;
+  /* the banner goes on last, so a passing train never hides it */
+  drawBanner(0, banY, W, banH);
+  ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.fillRect(0, banY + banH - 2, W, 2);
+
+  if (G.train) drawTrainShout(G.train);
+}
+
+function drawTrain(tr, y0, trackH) {
+  const cy = y0 + trackH / 2;
   const L = Math.max(W * 0.66, 380), span = W + L * 2;
   const x = tr.dir > 0 ? -L + span * tr.k : W + L - span * tr.k;
-  const th = bh * 0.74, ty = cy - th / 2;
+  const th = trackH * 0.90, ty = cy - th / 2;
 
   ctx.fillStyle = "rgba(0,0,0,.5)";
   rrect(x + 3, ty + 5, L, th, th * .22); ctx.fill();
@@ -1215,24 +1391,29 @@ function drawSkytrain() {
   ctx.font = FONT(700, clamp(th * .30, 9, 19));
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   ctx.fillText(CFG.TRAIN_TEXT, x + L / 2, ty + th * .56);
+}
 
-  /* and again, big, over the whole city, because it bears repeating */
+/* and again, big, over the whole city, because it bears repeating */
+function drawTrainShout(tr) {
   const fade = Math.sin(clamp(tr.k, 0, 1) * Math.PI);
   if (fade > 0.02) {
     ctx.save();
     ctx.globalAlpha = fade * .92;
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    const fs = clamp(W * .055, 18, 42);
-    const yy = H * 0.40;
+    /* the banner on the viaduct already says the quiet part. This is the
+       loud part: the train that just left is nearly there. */
+    const fs = clamp(W * .048, 16, 36);
+    const yy = H * 0.42;
     ctx.font = FONT(700, fs);
     ctx.shadowColor = "rgba(0,0,0,.95)"; ctx.shadowBlur = 22;
     ctx.fillStyle = "#8fd6ef";
-    ctx.fillText(CFG.TRAIN_TEXT, W / 2, yy);
+    ctx.fillText("อโศก → พร้อมพงษ์  2 นาที", W / 2, yy);
     ctx.shadowBlur = 0;
-    ctx.globalAlpha = fade * .6;
-    ctx.font = FONT(400, fs * .40);
+    ctx.globalAlpha = fade * .62;
+    ctx.font = FONT(400, fs * .46);
     ctx.fillStyle = "#c3ccd6";
-    ctx.fillText("อโศก → พร้อมพงษ์  2 นาที", W / 2, yy + fs * .95);
+    ctx.fillText(`คุณอยู่ที่แยกนี้มา ${mmss(G.play)} · ขบวนที่ ${G.st.trains}`,
+                 W / 2, yy + fs * 1.05);
     ctx.restore();
   }
 }
