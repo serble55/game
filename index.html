@@ -1,0 +1,1523 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>แยกอโศก — เกมขับรถที่รถไม่ขยับ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#e9edf2;
+    --ink-dim:#8b98a6;
+    --panel:rgba(10,14,18,.74);
+    --line:rgba(233,237,242,.14);
+    --go:#4ddb8b;
+    --wait:#ffc247;
+    --bad:#ff7a72;
+    --bts:#8fd6ef;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden;background:#0a0d11}
+  body{
+    font-family:'Noto Sans Thai','Sarabun','Leelawadee UI','Tahoma',sans-serif;
+    color:var(--ink);user-select:none;-webkit-user-select:none;
+  }
+  #wrap{position:fixed;inset:0}
+  canvas{display:block;width:100%;height:100%;touch-action:none}
+
+  /* ---------- on-screen controls ---------- */
+  #pad{
+    position:fixed;left:0;right:0;bottom:0;
+    padding:9px 10px calc(9px + env(safe-area-inset-bottom));
+    display:flex;gap:8px;justify-content:center;align-items:stretch;pointer-events:none;
+  }
+  .btn{
+    pointer-events:auto;flex:1 1 0;max-width:118px;min-height:56px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    color:var(--ink);font-family:inherit;font-size:19px;line-height:1;
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    transition:transform .06s, background .12s;
+  }
+  .btn small{font-size:10.5px;color:var(--ink-dim)}
+  .btn:active,.btn.on{transform:translateY(2px);background:rgba(255,255,255,.15)}
+  #b-go{flex:1.4 1 0;max-width:158px}
+
+  /* ---------- overlays ---------- */
+  .veil{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    padding:20px;background:rgba(6,9,12,.87);
+    backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:20;
+  }
+  .veil[hidden]{display:none}
+  .card{
+    width:100%;max-width:430px;max-height:100%;overflow:auto;
+    background:linear-gradient(180deg,#131a21,#0d1216);
+    border:1px solid var(--line);border-radius:18px;padding:22px 20px;
+  }
+  .card h1{margin:0 0 2px;font-size:25px;letter-spacing:-.4px}
+  .card h2{margin:0 0 3px;font-size:21px}
+  .tag{font-size:12px;color:var(--ink-dim);margin:0 0 16px}
+  .card p{margin:0 0 12px;font-size:14px;line-height:1.75;color:#c3ccd6}
+  .keys{
+    font-size:13px;line-height:2.1;color:#c3ccd6;
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    padding:12px 0;margin:14px 0 18px;
+  }
+  .keys b{color:var(--ink);font-weight:600}
+  kbd{
+    display:inline-block;min-width:22px;text-align:center;
+    background:rgba(255,255,255,.09);border:1px solid var(--line);
+    border-radius:5px;padding:1px 5px;font-family:inherit;font-size:12px;
+  }
+  .go{
+    display:block;width:100%;padding:14px;margin-top:4px;
+    background:var(--ink);color:#0b0f13;border:0;border-radius:12px;
+    font-family:inherit;font-size:16px;font-weight:700;
+  }
+  .go.ghost{background:transparent;color:var(--ink-dim);border:1px solid var(--line);
+    font-weight:400;font-size:13px;margin-top:8px;padding:10px}
+  .stats{list-style:none;margin:0 0 16px;padding:0;font-size:13.5px}
+  .stats li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;
+    border-bottom:1px solid rgba(233,237,242,.07)}
+  .stats span{color:var(--ink-dim)}
+  .stats b{font-weight:600;text-align:right}
+  .quip{
+    margin:0;padding:12px 14px;border-radius:10px;white-space:pre-line;
+    background:rgba(143,214,239,.09);border:1px solid rgba(143,214,239,.22);
+    font-size:13px;line-height:1.7;color:var(--bts);
+  }
+</style>
+
+<div id="wrap"><canvas id="cv"></canvas></div>
+
+<div id="pad">
+  <button class="btn" id="b-left">◀<small>มุดซ้าย</small></button>
+  <button class="btn" id="b-go">▲<small>คลานไปข้างหน้า</small></button>
+  <button class="btn" id="b-right">▶<small>มุดขวา</small></button>
+  <button class="btn" id="b-horn">🔊<small>บีบแตร</small></button>
+</div>
+
+<div class="veil" id="v-start">
+  <div class="card">
+    <h1>แยกอโศก</h1>
+    <p class="tag">เกมจำลองการขับรถในกรุงเทพ · ไม่เน้นสนุก</p>
+    <p>คุณอยู่บนถนนอโศกมนตรี ห่างจากเส้นหยุดราว <b><span id="c-dist"></span> เมตร</b><br>
+      ไฟแดงนาน <b><span id="c-red"></span> วินาที</b> ·
+      ไฟเขียวปล่อยแค่ <b><span id="c-green"></span> วินาที</b>
+      (และคนข้ามถนนกินไปอีก <span id="c-ped"></span> วินาที)</p>
+    <p>รถไม่ขยับ คุณก็ไม่ขยับ ทางเดียวที่จะไปได้คือ<b>มุดซ้ายมุดขวา</b>
+      แทรกช่องว่างที่คนขับเผลอเปิดไว้ ให้ไปอยู่หัวแถวก่อนไฟเขียวจะหมด</p>
+    <div class="keys">
+      <kbd>◀</kbd> <kbd>▶</kbd> หรือ <kbd>A</kbd><kbd>D</kbd> — <b>มุด</b> แทรกเข้าช่องว่างเลนข้างๆ<br>
+      <kbd>▲</kbd> หรือ <kbd>W</kbd> — <b>คลาน</b> ไปข้างหน้า (ถ้ามีที่ให้คลาน)<br>
+      <kbd>space</kbd> — <b>บีบแตร</b> (ไม่มีผลใดๆ ต่อการจราจร)<br>
+      บนมือถือ: <b>ปัดซ้ายขวา</b> เพื่อมุด · <b>แตะ</b> เพื่อคลาน
+    </div>
+    <button class="go" id="b-start">ออกเดินทาง</button>
+    <button class="go ghost" id="b-mute">🔊 เสียง: เปิด</button>
+  </div>
+</div>
+
+<div class="veil" id="v-end" hidden>
+  <div class="card">
+    <h2 id="e-title"></h2>
+    <p class="tag" id="e-sub"></p>
+    <ul class="stats" id="e-stats"></ul>
+    <p class="quip" id="e-quip"></p>
+    <button class="go" id="b-again"></button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ==========================================================================
+   แยกอโศก — a driving game in which the car does not move.
+   One file, no build, no assets. Every pixel is drawn from code.
+
+   The whole design rests on one idea: a standing queue has holes in it,
+   because some drivers leave 6 metres in front of them while looking at
+   their phone. Those holes are the only way forward, and taking one is
+   the only verb in the game.
+   ========================================================================== */
+
+/* ------------------------------------------------------------------ CONFIG */
+const CFG = {
+  /* --- geometry in metres. s = distance along Asok Montri rd, +s = forward */
+  LANES: 4,
+  LANE_W: 3.3,
+  STOP_LINE: 28,        // cross this and you have beaten Bangkok, briefly
+  JUNCTION_END: 40,     // far kerb of Sukhumvit
+  VIEW: 47,             // metres of road on screen
+  START_S: 2.5,
+  MIN_GAP: 1.1,         // metres you refuse to close on the car in front
+
+  /* --- signal, seconds */
+  RED: 70,
+  GREEN: 4.5,
+  YELLOW: 3.0,
+  PED_DELAY: 2.2,       // pedestrians eat the front of every green
+  RED_START: 30,        // red already elapsed when you join the queue
+
+  /* --- weaving: the only skill in this game */
+  WEAVE_REACH: 8.0,     // how far ahead a hole may be and still be reachable
+  WEAVE_BACK: 1.5,      // how far back a hole may be
+  WEAVE_DUR: 0.80,      // seconds mid-manoeuvre, input locked
+  WEAVE_CD: 0.28,
+  WEAVE_ROOM: 1.1,      // metres of slack a hole needs beyond your own length
+  YIELD_ROOM: 2.6,      // metres the driver behind will grudgingly give up
+  TAXI_STEAL: 0.16,     // chance someone takes the hole as you commit
+  STALL_CHANCE: 0.5,    // chance your new lane dies the moment you join it
+  STALL_TIME: 4.0,
+
+  /* --- traffic */
+  V0_JAM: 8.6,          // m/s ceiling once the light lets go
+  V0_PLAYER: 9.4,
+  SLOPPY: 0.30,         // share of drivers who leave a huge gap
+  GAP_SLOPPY: [4.4, 8.0],
+  GAP_TIGHT: [1.2, 2.3],
+  REACT: [1.0, 2.0],    // startup reaction time, per driver
+  QUEUE_AHEAD: 5,       // cars between you and the line when you arrive
+  MOTO_EVERY: [0.7, 2.0],
+  MOTO_V: [8.5, 14],
+  CUT_IN_EVERY: [6.5, 11],  // cars joining from the sois, always ahead of you
+
+  /* --- the punchline */
+  TRAIN_EVERY: [16, 23],
+  TRAIN_CROSS: 2.0,     // seconds to cross the whole screen
+  TRAIN_TEXT: "กรุงเทพ ชีวิตดีๆ ที่ลงตัว",
+
+  /* --- flavour */
+  CLOCK_START: 17 * 3600 + 42 * 60,
+  CLOCK_RATE: 12,
+  BOREDOM_UP: 7.5,
+  BOREDOM_DOWN: 5.0,
+};
+
+const TEXT = {
+  noLane:  ["ไม่มีเลนนั้นแล้ว", "ชิดขอบทางแล้ว มุดไม่ได้"],
+  noGap:   ["ไม่มีใครให้แทรก", "เขาไม่ให้ทาง", "ช่องแคบเกินไป", "จ่อไว้ก่อน เดี๋ยวได้แทรก",
+            "กันชนติดกันชน แทรกไม่เข้า"],
+  noYield: ["รถข้างหลังไม่ถอยให้", "เขาจี้ท้ายคันหน้าไว้แน่น"],
+  moto:    ["มอไซค์แซงมาพอดี!", "วินมาแล้ว ต้องรอ", "มอไซค์เบียดมาก่อน"],
+  taxi:    ["แท็กซี่ปาดหน้าไปก่อน", "มีคนแทรกตัดหน้าไปแล้ว", "ป้ายทะเบียนต่างจังหวัดเสียบเข้าไป"],
+  busLane: ["รถเมล์จอดป้ายขวางอยู่", "เลนนี้มีรถเมล์ดับเครื่องรออยู่"],
+  cutIn:   ["มีรถออกจากซอยมาแทรกข้างหน้าคุณ", "รถกลับรถมาเสียบข้างหน้า",
+            "มีคนออกจากลานจอดมาแทรกข้างหน้า", "แถวข้างหน้าคุณยาวขึ้นอีกคัน"],
+  weaveOk: ["มุดสำเร็จ!", "แทรกเข้าไปได้", "ได้ช่อง!"],
+  stalled: ["เลนใหม่หยุดสนิททันที", "มุดมาแล้วเลนนี้ไม่ขยับเลย", "เลนที่คุณเพิ่งออกมากำลังไปได้สวย"],
+  crawlNo: ["ข้างหน้าไม่มีที่ให้ไป", "ติดท้ายเขาแล้ว", "กันชนต่อกันชน"],
+  ranRed:  ["ฝ่าไฟแดง! ติดกลางแยก โดนปรับ 500 บาท"],
+  stuckJn: ["ติดกลางแยก รถทางตรงบีบแตรใส่คุณ", "ตำรวจเดินมาแล้ว", "คุณขวางทางคนอื่นทั้งแยก"],
+  wavedBack: ["ตำรวจโบกให้ถอยกลับไปหลังเส้น", "ถูกไล่ให้ถอยกลับมารอเหมือนเดิม",
+              "ถอยกลับมานั่งรอไฟเขียวเหมือนคนอื่น"],
+  green:   ["ไฟเขียว! ไป ไป ไป", "เขียวแล้ว! แปปเดียวนะ"],
+  yellow:  ["ไฟเหลือง เร่งหรือหยุด ตัดสินใจเลย"],
+  red:     ["ไฟแดงอีกรอบ นั่งรอต่อ", "ไม่ทัน ไฟแดงอีก 70 วินาที"],
+  bored: [
+    "ลองนับเสา BTS ดูไหม มี 5 เสาในจอ",
+    "แม่โทรมาถามว่าถึงไหนแล้ว คุณตอบว่า “ใกล้แล้ว”",
+    "วิทยุรายงานสภาพจราจร: “แยกอโศกการจราจรหนาแน่น” ขอบคุณครับ",
+    "คนขายพวงมาลัยเดินผ่านหน้ารถไปแล้ว 2 รอบ",
+    "แบตมือถือเหลือ 12%",
+    "คุณเริ่มคิดว่าถ้าลงเดินตอนนี้ก็ถึงก่อน",
+    "แอปแผนที่บอกว่าอีก 6 นาที ตัวเลขนี้ไม่เคยลดลง",
+    "รถข้างๆ ดูซีรีส์จบไป 1 ตอนแล้ว",
+    "คุณจัดกระจก จัดเบาะ จัดแอร์ ครบทุกอย่างแล้ว",
+    "แอร์เริ่มไม่เย็น เพราะเครื่องเดินเบานานเกินไป",
+    "คุณอ่านสติกเกอร์ท้ายรถคันหน้าจบทุกแผ่นแล้ว",
+  ],
+  quip: [
+    "เวลาที่คุณใช้ผ่านแยกเดียว คิดเป็น 0.0008% ของอายุขัยเฉลี่ยคนไทย",
+    "รถไฟฟ้าที่แซงคุณไป ใช้เวลาจากอโศกถึงพร้อมพงษ์ 2 นาที",
+    "คุณผ่านแยกนี้ได้แล้ว ข้างหน้ายังมีอีก 6 แยก",
+    "ค่าน้ำมันที่เผาไปตอนรถไม่ขยับ ประมาณ 23 บาท",
+    "ถ้าเดินจากจุดเริ่มต้นถึงตรงนี้ ใช้เวลา 20 วินาที",
+  ],
+  next: [
+    "ข้างหน้า: แยกพร้อมพงษ์ — ไฟแดง 120 วินาที",
+    "ข้างหน้า: แยกทองหล่อ — ไฟแดง 95 วินาที และมีรถเมล์ 3 คันจอดป้าย",
+    "ข้างหน้า: แยกเอกมัย — ไฟแดง 110 วินาที ฝนกำลังตก",
+    "ข้างหน้า: อุโมงค์ท่าน้ำ — น้ำท่วมขัง รอระบาย",
+  ],
+};
+
+/* --------------------------------------------------------------- utilities */
+/* seeded PRNG: a session can be replayed exactly while debugging */
+let _seed = 0x2f6e2b1;
+function rnd() {
+  _seed ^= _seed << 13; _seed ^= _seed >>> 17; _seed ^= _seed << 5;
+  return ((_seed >>> 0) % 100000) / 100000;
+}
+const rr    = (a, b) => a + rnd() * (b - a);
+const ri    = (a, b) => Math.floor(rr(a, b + 1));
+const pick  = (a) => a[ri(0, a.length - 1)];
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+const ease  = (t) => (t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
+const thNum = (n, d = 0) =>
+  n.toLocaleString("th-TH", { minimumFractionDigits: d, maximumFractionDigits: d });
+function clockStr(sec) {
+  const t = Math.floor(sec) % 86400;
+  return `${String(Math.floor(t / 3600)).padStart(2, "0")}:${String(Math.floor(t / 60) % 60).padStart(2, "0")}`;
+}
+const mmss = (s) => `${Math.floor(s / 60)} นาที ${String(Math.floor(s % 60)).padStart(2, "0")} วินาที`;
+
+/* ------------------------------------------------------------------ CANVAS */
+const cv = document.getElementById("cv");
+const ctx = cv.getContext("2d");
+let W = 0, H = 0, PPM = 12, ROAD_X = 0, ROAD_W = 0, BASE_Y = 0, SMALL = false;
+let PAD_T = 16, PAD_B = 10;             // reserved bands: HUD above, buttons below
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  SMALL = W < 560;
+
+  /* on a phone the HUD moves to a strip along the top and the button pad
+     eats the bottom, so the road has to be squeezed between them */
+  PAD_T = SMALL ? 116 : 16;
+  PAD_B = SMALL ? 90 : 10;
+
+  BASE_Y = H - PAD_B;                              // where s = 0 lands
+  PPM = Math.max(6, (H - PAD_T - PAD_B) / CFG.VIEW);
+  ROAD_W = CFG.LANES * CFG.LANE_W * PPM;
+  ROAD_X = Math.round(W * 0.5 - ROAD_W * 0.5);
+  cityCv = null;
+}
+window.addEventListener("resize", resize);
+
+const y_of  = (s) => BASE_Y - s * PPM;
+const x_of  = (lane) => ROAD_X + (lane + 0.5) * CFG.LANE_W * PPM;
+const edgeX = (i) => ROAD_X + i * CFG.LANE_W * PPM;   // lane divider / kerb
+
+/* ------------------------------------------------------------------- AUDIO */
+const Sfx = {
+  ac: null, muted: false,
+  unlock() {
+    if (!this.ac) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) { try { this.ac = new AC(); } catch { this.ac = null; } }
+    }
+    if (this.ac && this.ac.state === "suspended") this.ac.resume();
+  },
+  blip(f0, f1, dur, gain, type) {
+    if (this.muted || !this.ac) return;
+    const t = this.ac.currentTime;
+    const o = this.ac.createOscillator(), g = this.ac.createGain();
+    o.type = type || "square";
+    o.frequency.setValueAtTime(f0, t);
+    o.frequency.linearRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(this.ac.destination);
+    o.start(t); o.stop(t + dur + .02);
+  },
+  horn()    { this.blip(415, 400, .34, .10); this.blip(312, 300, .34, .07); },
+  hornFar() { this.blip(240, 232, .26, .035, "sawtooth"); },
+  ok()      { this.blip(560, 840, .11, .05, "triangle"); },
+  nope()    { this.blip(190, 130, .14, .05, "sawtooth"); },
+  ding()    { this.blip(880, 1180, .13, .05, "triangle"); },
+  train()   { this.blip(120, 300, .7, .030, "sine"); },
+};
+
+/* ------------------------------------------------------------------- INPUT */
+const keys = Object.create(null);
+const Input = { up: false, weave: 0, horn: false };
+let padGo = false;
+
+addEventListener("keydown", (e) => {
+  const k = e.key.toLowerCase();
+  if (["arrowup","arrowdown","arrowleft","arrowright"," ","w","a","s","d"].includes(k)) e.preventDefault();
+  if (keys[k]) return;                                  // ignore auto-repeat
+  keys[k] = true;
+  if (k === "arrowleft"  || k === "a") Input.weave = -1;
+  if (k === "arrowright" || k === "d") Input.weave = 1;
+  if (k === " " || k === "h") Input.horn = true;
+});
+addEventListener("keyup", (e) => { keys[e.key.toLowerCase()] = false; });
+addEventListener("blur", () => { for (const k in keys) keys[k] = false; padGo = false; });
+
+function hold(el, onDown, onUp) {
+  const down = (e) => { e.preventDefault(); el.classList.add("on"); onDown(); };
+  const up   = (e) => { if (e) e.preventDefault(); el.classList.remove("on"); if (onUp) onUp(); };
+  el.addEventListener("pointerdown", down);
+  for (const ev of ["pointerup", "pointercancel", "pointerleave"]) el.addEventListener(ev, up);
+}
+hold(document.getElementById("b-go"),    () => { padGo = true; }, () => { padGo = false; });
+hold(document.getElementById("b-left"),  () => { Input.weave = -1; });
+hold(document.getElementById("b-right"), () => { Input.weave = 1; });
+hold(document.getElementById("b-horn"),  () => { Input.horn = true; });
+
+let touch = null, tapGo = 0;
+cv.addEventListener("pointerdown", (e) => {
+  touch = { x: e.clientX, y: e.clientY, t: performance.now(), fired: false };
+});
+cv.addEventListener("pointermove", (e) => {
+  if (!touch || touch.fired) return;
+  const dx = e.clientX - touch.x, dy = e.clientY - touch.y;
+  if (Math.abs(dx) > 32 && Math.abs(dx) > Math.abs(dy)) {
+    Input.weave = dx > 0 ? 1 : -1; touch.fired = true;
+  } else if (dy < -32) {
+    tapGo = 0.55; touch.fired = true;
+  }
+});
+cv.addEventListener("pointerup", () => {
+  if (touch && !touch.fired && performance.now() - touch.t < 450) tapGo = 0.45;
+  touch = null;
+});
+
+/* ============================================================ GAME OBJECTS */
+const KINDS = [
+  { t: "sedan",  len: 4.4, w: 1.78, col: "#c8ccd2", win: "#20262c" },
+  { t: "sedan",  len: 4.5, w: 1.80, col: "#8e959e", win: "#1c2227" },
+  { t: "sedan",  len: 4.3, w: 1.76, col: "#e6e9ee", win: "#22282e" },
+  { t: "sedan",  len: 4.4, w: 1.78, col: "#2c3a4a", win: "#151b21" },
+  { t: "suv",    len: 4.9, w: 1.92, col: "#4a5561", win: "#191f24" },
+  { t: "suv",    len: 5.0, w: 1.95, col: "#333f4a", win: "#171c21" },
+  { t: "pickup", len: 5.4, w: 1.88, col: "#6d7480", win: "#1b2126" },
+  { t: "taxi",   len: 4.5, w: 1.80, col: "#f0a23c", win: "#20262c" },
+  { t: "taxi",   len: 4.5, w: 1.80, col: "#e8558f", win: "#20262c" },
+  { t: "taxi",   len: 4.5, w: 1.80, col: "#63c37a", win: "#20262c" },
+  { t: "van",    len: 5.6, w: 1.94, col: "#d6d9de", win: "#1e242a" },
+];
+
+let nextId = 1;
+/* every driver gets a personal standstill gap. The generous ones are the
+   holes you will spend the whole game hunting for. */
+function gapPref() {
+  return rnd() < CFG.SLOPPY ? rr(CFG.GAP_SLOPPY[0], CFG.GAP_SLOPPY[1])
+                            : rr(CFG.GAP_TIGHT[0], CFG.GAP_TIGHT[1]);
+}
+function makeCar(lane, s) {
+  const k = pick(KINDS);
+  return {
+    id: nextId++, lane, s, v: 0,
+    len: k.len, w: k.w, kind: k.t, col: k.col, win: k.win,
+    s0: gapPref(), react: rr(CFG.REACT[0], CFG.REACT[1]),
+    wake: 0, brake: 0, honkAt: 0, isPlayer: false, isBus: false,
+  };
+}
+function makeBus(lane, s) {
+  return {
+    id: nextId++, lane, s, v: 0,
+    len: 11.8, w: 2.5, kind: "bus", col: "#d8562f", win: "#1d2429",
+    s0: 2.0, react: 3.4, wake: 0, brake: 0, honkAt: 0,
+    isPlayer: false, isBus: true, dwell: rr(16, 34),
+  };
+}
+
+/* ================================================================== STATE  */
+let G = null;
+
+function newGame(round) {
+  round = round || 1;
+  const hard = Math.min(round - 1, 3);
+
+  G = {
+    round, t: 0, play: 0,
+    state: "PLAYING",                 // PLAYING | JUNCTION | WON
+    lanes: [], motos: [], cross: [], toasts: [],
+    train: null, trainAt: rr(3, 7),
+    signal: { phase: "RED", tp: CFG.RED_START, green: Math.max(3.2, CFG.GREEN - hard * 0.6) },
+    stall: new Array(CFG.LANES).fill(0),
+    boredom: 0, winAt: 0, hint: 0, illegal: false, boxT: 0,
+    st: { horn: 0, trains: 0, motos: 0, weaveOk: 0, weaveFail: 0, still: 0,
+          cycles: 0, fine: 0, redRuns: 0, cutIns: 0 },
+    player: null,
+  };
+
+  /* queues packed from the stop line back past the bottom of the screen,
+     each driver sitting at their own preferred distance */
+  for (let l = 0; l < CFG.LANES; l++) {
+    const cars = [];
+    let s = CFG.STOP_LINE - rr(1.2, 2.6);
+    while (s > -13) {
+      const c = makeCar(l, s);
+      cars.push(c);
+      s -= c.len + Math.max(1.1, c.s0 - hard * 0.35) + rr(-0.2, 0.5);
+    }
+    G.lanes.push(cars);
+  }
+
+  /* a bus dead at the kerb, engine off, going nowhere */
+  G.lanes[0].push(makeBus(0, 17 + rr(-2.5, 2.5)));
+
+  /* you: dropped into a middle lane near the back */
+  const p = makeCar(1 + ri(0, 1), CFG.START_S);
+  Object.assign(p, {
+    isPlayer: true, kind: "sedan", col: "#ff5a52", win: "#2a1416",
+    len: 4.4, w: 1.8, s0: 1.1, react: 0, weave: null, cd: 0, dist0: CFG.START_S,
+  });
+  G.player = p;
+  G.lanes[p.lane].push(p);
+  for (const cars of G.lanes) sortLane(cars);
+
+  /* let the jam settle before handing over the wheel — otherwise the first
+     five seconds hand you free metres that the queue had already closed up */
+  p.isPlayer = false;
+  for (let i = 0; i < 300; i++) updateTraffic(1 / 60);
+
+  /* drop yourself in at a fixed rank in the queue, so every attempt starts
+     with the same amount of Bangkok between you and the line. A loosely
+     packed lane can push that rank off the bottom of the screen, so give up
+     a place at a time until the car is actually on it. */
+  const others = G.lanes[p.lane].filter((c) => !c.isPlayer);
+  for (let n = Math.min(CFG.QUEUE_AHEAD, others.length); n >= 1; n--) {
+    const nth = others[n - 1];
+    const cand = nth.s - nth.len / 2 - p.len / 2 - 1.4;
+    if (cand >= 1.6 || n === 1) { p.s = Math.max(cand, 1.6); break; }
+  }
+  sortLane(G.lanes[p.lane]);
+  for (let i = 0; i < 90; i++) updateTraffic(1 / 60);   // let them shuffle back
+
+  p.isPlayer = true; p.v = 0; p.dist0 = p.s;
+  for (const cars of G.lanes) sortLane(cars);
+
+  toast(`รอบที่ ${round} · แยกอโศก · ไฟแดง`, "info");
+}
+const sortLane = (cars) => cars.sort((a, b) => b.s - a.s);
+
+/* --------------------------------------------------------------- signal FSM */
+function greenOpen() {
+  const g = G.signal;
+  if (g.phase === "GREEN") return g.tp > CFG.PED_DELAY;
+  return g.phase === "YELLOW";                 // yellow: everybody keeps going
+}
+function updateSignal(dt) {
+  const g = G.signal;
+  g.tp += dt;
+  if (g.phase === "RED" && g.tp >= CFG.RED) {
+    g.phase = "GREEN"; g.tp = 0;
+    toast(pick(TEXT.green), "go"); Sfx.ding();
+  } else if (g.phase === "GREEN" && g.tp >= g.green) {
+    g.phase = "YELLOW"; g.tp = 0;
+    if (G.state === "PLAYING") toast(pick(TEXT.yellow), "warn");
+  } else if (g.phase === "YELLOW" && g.tp >= CFG.YELLOW) {
+    g.phase = "RED"; g.tp = 0; G.st.cycles++;
+    if (G.state === "PLAYING") toast(pick(TEXT.red), "bad");
+  }
+}
+/* the countdown on a Bangkok red is never information you get to have */
+function signalLabel() {
+  const g = G.signal;
+  if (g.phase === "GREEN")  return "ไฟเขียว — ไปเลย!";
+  if (g.phase === "YELLOW") return "ไฟเหลือง";
+  const left = CFG.RED - g.tp;
+  if (left > 42) return "ไฟแดง — อีกนาน";
+  if (left > 16) return "ไฟแดง — อีกสักครู่";
+  if (left > 5)  return "ไฟแดง — ใกล้แล้ว เตรียมตัว";
+  return "ไฟแดง — เดี๋ยวเขียว!";
+}
+
+/* --------------------------------------------------------- following model */
+const IDM_A = 1.7, IDM_B = 2.3, IDM_T = 1.0;
+
+function idm(car, gap, dv, v0) {
+  const sStar = car.s0 + Math.max(0, car.v * IDM_T + car.v * dv / (2 * Math.sqrt(IDM_A * IDM_B)));
+  const free  = 1 - Math.pow(car.v / v0, 4);
+  const inter = gap > 0.05 ? Math.pow(sStar / gap, 2) : 60;
+  return IDM_A * (free - inter);
+}
+const leadOf = (cars, i) => (i > 0 ? cars[i - 1] : null);
+const gapAhead = (car, lead) =>
+  lead ? (lead.s - lead.len / 2) - (car.s + car.len / 2) : Infinity;
+
+function stopLineGap(car) {
+  if (car.s + car.len / 2 >= CFG.STOP_LINE) return Infinity;   // already committed
+  if (greenOpen()) return Infinity;
+  return CFG.STOP_LINE - (car.s + car.len / 2);
+}
+
+function updateTraffic(dt) {
+  for (let l = 0; l < CFG.LANES; l++) {
+    const cars = G.lanes[l];
+    const stalled = G.stall[l] > 0;
+
+    for (let i = 0; i < cars.length; i++) {
+      const car = cars[i];
+      if (car.isPlayer) continue;                 // the human drives that one
+
+      /* a bus at a stop simply does not participate in traffic */
+      if (car.isBus) {
+        car.dwell -= dt;
+        if (car.dwell > 0) { car.v = 0; continue; }
+      }
+
+      const lead = leadOf(cars, i);
+      const gapC = gapAhead(car, lead);
+      const gapL = stopLineGap(car);
+      const gap  = Math.min(gapC, gapL);
+      const dv   = car.v - (gapC <= gapL && lead ? lead.v : 0);
+      const v0   = stalled ? 0.25 : CFG.V0_JAM;
+
+      let a = idm(car, gap, dv, v0);
+
+      /* startup reaction: a stopped driver needs a moment to notice the gap */
+      if (car.v < 0.4) {
+        if (gap > car.s0 + 1.0) car.wake += dt; else car.wake = 0;
+        if (car.wake < car.react) a = Math.min(a, 0);
+      } else car.wake = car.react;
+
+      car.brake = Math.max(0, car.brake - dt * 3);
+      if (a < -1.2) car.brake = 1;
+      car.v = Math.max(0, car.v + a * dt);
+
+      /* hard clamp: sprites never overlap. If something (you) appeared in
+         front of them they will grudgingly inch backwards to make room. */
+      let ceil = Infinity;
+      if (lead) ceil = lead.s - lead.len / 2 - car.len / 2 - 0.12;
+      if (gapL !== Infinity) ceil = Math.min(ceil, CFG.STOP_LINE - car.len / 2 - 0.12);
+      const want = car.s + car.v * dt;
+      if (ceil === Infinity) car.s = want;
+      else if (want <= ceil) car.s = want;
+      else if (car.s <= ceil) { car.s = ceil; car.v = Math.min(car.v, lead ? lead.v : 0); }
+      else {
+        /* someone appeared in front of them: inch back, but never into
+           whoever is sitting behind (which may well be the player) */
+        const follower = cars[i + 1];
+        const floor = follower ? follower.s + follower.len / 2 + car.len / 2 + 0.2 : -Infinity;
+        car.s = Math.max(Math.max(ceil, floor), car.s - 2.6 * dt);
+        car.v = 0; car.brake = 1;
+      }
+
+      /* an idle driver behind an open gap will let you know about it */
+      if (car.v < 0.3 && gap > 6 && G.t > car.honkAt && rnd() < 0.004) {
+        car.honkAt = G.t + rr(6, 16); Sfx.hornFar();
+      }
+    }
+
+    /* recycle: drop what cleared the junction, refill the tail */
+    for (let i = cars.length - 1; i >= 0; i--)
+      if (!cars[i].isPlayer && cars[i].s > CFG.JUNCTION_END + 9) cars.splice(i, 1);
+    const tail = cars[cars.length - 1];
+    if (!tail || tail.s > -11) {
+      const c = makeCar(l, (tail ? tail.s : 0) - rr(5.5, 10.5));
+      c.v = 0; cars.push(c);
+    }
+
+    if (G.stall[l] > 0) G.stall[l] -= dt;
+    sortLane(cars);
+  }
+}
+
+/* ------------------------------------------------------------ player drive */
+function updatePlayer(dt) {
+  const p = G.player;
+  const cars = G.lanes[p.lane];
+  sortLane(cars);                                 // the AI moved since we sorted
+  const lead = leadOf(cars, cars.indexOf(p));
+
+  /* mid-weave: slide across, input locked */
+  if (p.weave) {
+    const wv = p.weave;
+    wv.t += dt;
+    const k = clamp(wv.t / CFG.WEAVE_DUR, 0, 1);
+    p.s = wv.s0 + (wv.s1 - wv.s0) * ease(k);
+    p.v = Math.abs(wv.s1 - wv.s0) / CFG.WEAVE_DUR;
+    wv.off = (1 - ease(k)) * (wv.from - wv.to) * CFG.LANE_W;
+    if (k >= 1) { p.weave = null; p.cd = CFG.WEAVE_CD; }
+    return;
+  }
+  p.cd = Math.max(0, p.cd - dt);
+
+  /* no stop-line obstacle for you: running the red is allowed.
+     This is Bangkok. It just goes badly — see the junction block below. */
+  const wantGo = Input.up || padGo || tapGo > 0;
+  const gapC = gapAhead(p, lead);
+  const v0 = G.stall[p.lane] > 0 ? 0.6 : CFG.V0_PLAYER;
+
+  let a;
+  if (wantGo) {
+    a = Math.max(-4.5, idm(p, gapC, p.v - (lead ? lead.v : 0), v0));
+    if (gapC < CFG.MIN_GAP + 0.4 && rnd() < 0.018) toast(pick(TEXT.crawlNo), "dim");
+  } else a = -3.2;                                // let go and you stop at once
+
+  p.v = clamp(p.v + a * dt, 0, CFG.V0_PLAYER);
+  const ceil = lead ? lead.s - lead.len / 2 - p.len / 2 - CFG.MIN_GAP : Infinity;
+  const want = p.s + p.v * dt;
+  if (ceil === Infinity || want <= ceil) p.s = want;
+  else { p.s = Math.max(p.s, ceil); p.v = Math.min(p.v, lead ? lead.v : 0); }
+
+  /* --- the stop line --- */
+  if (G.state === "PLAYING" && p.s + p.len / 2 >= CFG.STOP_LINE) {
+    G.state = "JUNCTION";
+    if (greenOpen()) { toast("ข้ามเส้นหยุดได้แล้ว! ไปต่อ!", "go"); Sfx.ok(); }
+    else {
+      G.illegal = true; G.boxT = 0;
+      G.st.redRuns++; G.st.fine += 500;
+      toast(pick(TEXT.ranRed), "bad"); Sfx.nope(); Sfx.hornFar();
+    }
+  }
+
+  /* --- inside the box --- */
+  if (G.state === "JUNCTION") {
+    if (G.illegal && !greenOpen()) {
+      const wall = CFG.STOP_LINE + 4.0;           // cross traffic owns the box
+      if (p.s > wall) { p.s = wall; p.v = 0; }
+      G.boxT += dt;
+      if (rnd() < 0.008) { toast(pick(TEXT.stuckJn), "bad"); Sfx.hornFar(); }
+      /* sitting in the box does not get you a free pass through the next
+         green — a policeman walks over and waves you back behind the line */
+      if (G.boxT > 4.5) {
+        G.state = "PLAYING"; G.illegal = false; G.boxT = 0;
+        p.s = CFG.STOP_LINE - p.len / 2 - 2.4; p.v = 0;
+        toast(pick(TEXT.wavedBack), "bad"); Sfx.nope();
+      }
+    } else G.illegal = false;
+
+    if (G.state === "JUNCTION" && p.s >= CFG.JUNCTION_END) {
+      G.state = "WON"; G.winAt = G.play; Sfx.ok();
+      setTimeout(showEnd, 900);
+    }
+  }
+}
+
+/* ------------------------------------------------------------------- WEAVE */
+function tryWeave(dir) {
+  const p = G.player;
+  if (G.state !== "PLAYING" || p.weave || p.cd > 0) return;
+
+  const to = p.lane + dir;
+  if (to < 0 || to >= CFG.LANES) return fail(pick(TEXT.noLane));
+
+  const cars = G.lanes[to];
+  const need = p.len + CFG.WEAVE_ROOM;
+  let best = null, sawTight = false;
+
+  /* every hole in the target lane: between two cars, ahead of the leader,
+     or behind the tail. Take the one that gains the most ground. */
+  for (let i = 0; i <= cars.length; i++) {
+    const front = i > 0 ? cars[i - 1] : null;          // car ahead of the hole
+    const back  = i < cars.length ? cars[i] : null;    // car behind the hole
+    const hi = front ? front.s - front.len / 2 : CFG.STOP_LINE;
+    const lo = back  ? back.s + back.len / 2  : -18;
+    if (hi - lo <= 0.2) continue;
+
+    /* the driver behind a hole will inch back, but only if they have room */
+    const back2 = back && i + 1 < cars.length ? cars[i + 1] : null;
+    const roomBehind = back
+      ? clamp((back.s - back.len / 2) - (back2 ? back2.s + back2.len / 2 : back.s - 24),
+              0, CFG.YIELD_ROOM)
+      : CFG.YIELD_ROOM;
+
+    if (hi - lo + roomBehind < need) { sawTight = true; continue; }
+
+    /* nose in tight behind the car in front, as far forward as you can reach */
+    const target = Math.min(hi - p.len / 2 - 0.35, p.s + CFG.WEAVE_REACH);
+    if (target < p.s - CFG.WEAVE_BACK) continue;
+    if ((target - p.len / 2) - lo < -roomBehind) { sawTight = true; continue; }
+
+    if (!best || target > best.target) best = { target, back, roomBehind };
+  }
+
+  if (!best) {
+    const bus = cars.find((c) => c.isBus && Math.abs(c.s - p.s) < 8);
+    return fail(bus ? pick(TEXT.busLane) : pick(sawTight ? TEXT.noYield : TEXT.noGap));
+  }
+
+  /* a motorcycle riding that exact divider has priority. Always. */
+  const div = dir > 0 ? to : p.lane;
+  if (G.motos.some((m) => m.edge === div && m.s > p.s - 6 && m.s < p.s + 12))
+    return fail(pick(TEXT.moto));
+
+  /* someone else takes the hole the instant you commit to it */
+  if (rnd() < CFG.TAXI_STEAL) {
+    if (best.back) best.back.s += Math.min(best.roomBehind + 1.2, 2.4);
+    return fail(pick(TEXT.taxi));
+  }
+
+  /* commit */
+  const from = p.lane, gained = best.target - p.s;
+  G.lanes[from].splice(G.lanes[from].indexOf(p), 1);
+  p.lane = to; cars.push(p); sortLane(cars);
+  p.weave = { t: 0, s0: p.s, s1: best.target, from, to, off: 0 };
+  if (best.back) { best.back.brake = 1; best.back.wake = 0; }
+  G.st.weaveOk++; Sfx.ok();
+  toast(`${pick(TEXT.weaveOk)} ${gained > 0.3 ? "+" + thNum(gained, 1) + " ม." : "(ไม่ได้ระยะเลย)"}`,
+        gained > 0.3 ? "go" : "dim");
+
+  /* the joke: your new lane dies the moment you join it */
+  if (rnd() < CFG.STALL_CHANCE) {
+    G.stall[to] = CFG.STALL_TIME;
+    setTimeout(() => { if (G && G.state === "PLAYING") toast(pick(TEXT.stalled), "dim"); }, 650);
+  }
+}
+function fail(msg) {
+  G.st.weaveFail++; toast(msg, "bad"); Sfx.nope();
+  G.player.cd = CFG.WEAVE_CD * 1.7;             // mashing the button gets you nowhere
+}
+
+/* ------------------------------------------------------------------ HAZARDS */
+let motoAt = 0;
+function updateMotos(dt) {
+  motoAt -= dt;
+  if (motoAt <= 0) {
+    motoAt = rr(CFG.MOTO_EVERY[0], CFG.MOTO_EVERY[1]);
+    G.motos.push({
+      edge: ri(0, CFG.LANES),                     // they ride the lane dividers
+      s: -7, v: rr(CFG.MOTO_V[0], CFG.MOTO_V[1]),
+      col: pick(["#39d98a", "#f2c14e", "#4aa3ff", "#e8558f", "#dfe4ea"]),
+      box: rnd() < 0.45, wob: rr(0, 6.3), counted: false,
+    });
+  }
+  for (let i = G.motos.length - 1; i >= 0; i--) {
+    const m = G.motos[i];
+    /* motorcycles observe the red light only loosely */
+    const blocked = !greenOpen() && m.s + 1 > CFG.STOP_LINE - 1.4 && rnd() < 0.985;
+    m.v = blocked ? Math.max(0, m.v - 14 * dt)
+                  : Math.min(CFG.MOTO_V[1], m.v + 6 * dt);
+    m.s += m.v * dt;
+    m.wob += dt * 7;
+    if (!m.counted && m.s > G.player.s + 2) { m.counted = true; G.st.motos++; }
+    if (m.s > CFG.VIEW + 7) G.motos.splice(i, 1);
+  }
+}
+
+/* Bangkok's treadmill: however long you wait, the queue in front of you is
+   replenished from side sois and U-turns. Waiting patiently gets you nowhere,
+   which is the entire point of the game — weaving is the only way out. */
+let cutAt = 0;
+function updateCutIns(dt) {
+  cutAt -= dt;
+  if (cutAt > 0 || G.state !== "PLAYING") return;
+  cutAt = rr(CFG.CUT_IN_EVERY[0], CFG.CUT_IN_EVERY[1]);
+
+  const p = G.player;
+  /* the treadmill has a floor a couple of metres below where you started:
+     you can be held still forever, but not driven backwards forever. Note
+     the floor is on position, not on progress — sitting still must never
+     buy you peace and quiet. */
+  if (p.s < p.dist0 - 2.0) return;
+
+  let best = null;
+  for (let l = 0; l < CFG.LANES; l++) {
+    const cars = G.lanes[l];
+    for (let i = 0; i <= cars.length; i++) {
+      const front = i > 0 ? cars[i - 1] : null;
+      const back  = i < cars.length ? cars[i] : null;
+      const hi = front ? front.s - front.len / 2 : CFG.STOP_LINE;
+      const lo = back  ? back.s + back.len / 2  : -18;
+      /* only holes strictly ahead of you, and short of the line */
+      if (lo < p.s + 1.5 || hi > CFG.STOP_LINE) continue;
+      if (hi - lo < 4.0) continue;
+      if (!best || hi - lo > best.size) best = { lane: l, size: hi - lo, at: (hi + lo) / 2 };
+    }
+  }
+  /* a tight hole still gets taken — everyone behind it just shuffles back,
+     and the one who loses the most ground is you */
+  if (!best) return;
+
+  const c = makeCar(best.lane, best.at);
+  c.s0 = rr(CFG.GAP_TIGHT[0], CFG.GAP_TIGHT[1]);      // and they tailgate, of course
+  G.lanes[best.lane].push(c);
+  sortLane(G.lanes[best.lane]);
+  G.st.cutIns++;
+  if (rnd() < 0.7) toast(pick(TEXT.cutIn), "bad");
+  Sfx.hornFar();
+}
+
+/* cross traffic on Sukhumvit — proof that somebody, somewhere, is moving */
+function updateCross(dt) {
+  const flowing = !greenOpen();
+  if (flowing && rnd() < 0.06) {
+    const right = rnd() < 0.5, k = pick(KINDS);
+    G.cross.push({
+      x: right ? -10 : W + 10, vx: (right ? 1 : -1) * rr(80, 150),
+      row: ri(0, 3), len: k.len * PPM, wd: k.w * PPM,
+      col: k.col, win: k.win, dir: right,
+    });
+  }
+  for (let i = G.cross.length - 1; i >= 0; i--) {
+    const c = G.cross[i];
+    c.x += c.vx * dt * (flowing ? 1 : 0.04);
+    if (c.x < -70 || c.x > W + 70) G.cross.splice(i, 1);
+  }
+}
+
+/* -------------------------------------------------------------- SKYTRAIN    */
+function updateTrain(dt) {
+  if (G.train) {
+    G.train.k += dt / CFG.TRAIN_CROSS;
+    if (G.train.k >= 1.4) G.train = null;
+    return;
+  }
+  G.trainAt -= dt;
+  if (G.trainAt <= 0) {
+    G.trainAt = rr(CFG.TRAIN_EVERY[0], CFG.TRAIN_EVERY[1]);
+    G.train = { k: 0, dir: rnd() < 0.5 ? 1 : -1 };
+    G.st.trains++; Sfx.train();
+  }
+}
+
+/* --------------------------------------------------------------- BOREDOM    */
+let boredAt = 0;
+function updateBoredom(dt) {
+  const p = G.player;
+  if (p.v < 0.25 && !p.weave) { G.boredom += CFG.BOREDOM_UP * dt; G.st.still += dt; }
+  else G.boredom -= CFG.BOREDOM_DOWN * dt;
+  G.boredom = clamp(G.boredom, 0, 100);
+  boredAt -= dt;
+  if (G.boredom >= 100 && boredAt <= 0) {
+    boredAt = 6; G.boredom = 50;
+    toast(pick(TEXT.bored), "dim");
+  }
+}
+
+/* ---------------------------------------------------------------- TOASTS    */
+function toast(msg, kind) {
+  G.toasts.push({ msg, kind: kind || "info", life: 3.2 });
+  if (G.toasts.length > 4) G.toasts.shift();
+}
+
+/* ================================================================= RENDER   */
+const TOAST_COL = { info: "#e9edf2", go: "#4ddb8b", bad: "#ff7a72", warn: "#ffc247", dim: "#8b98a6" };
+const FONT = (w, px) => `${w} ${px}px 'Noto Sans Thai','Sarabun','Leelawadee UI',sans-serif`;
+
+function rrect(x, y, w, h, r) {
+  const rad = Math.max(0, Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + rad, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rad);
+  ctx.arcTo(x + w, y + h, x, y + h, rad);
+  ctx.arcTo(x, y + h, x, y, rad);
+  ctx.arcTo(x, y, x + w, y, rad);
+  ctx.closePath();
+}
+
+/* --- everything either side of the road, baked once into an offscreen canvas */
+let cityCv = null;
+function city() {
+  if (cityCv) return cityCv;
+  const c = document.createElement("canvas");
+  c.width = Math.max(1, W); c.height = Math.max(1, H);
+  const g = c.getContext("2d");
+  const save = _seed; _seed = 0x51f3a7;
+
+  g.fillStyle = "#090c10"; g.fillRect(0, 0, W, H);
+
+  const sides = [{ a: 0, b: ROAD_X - 12, left: true }, { a: ROAD_X + ROAD_W + 12, b: W, left: false }];
+  for (const sd of sides) {
+    const wd = sd.b - sd.a;
+    if (wd < 10) continue;
+
+    /* --- city blocks: dark roofs, lit rooftop clutter, water tanks --- */
+    let y = -30;
+    while (y < H) {
+      const bh = rr(70, 200), bw = rr(46, Math.max(56, wd * 0.95));
+      const bx = sd.left ? sd.b - bw - rr(0, 12) : sd.a + rr(0, 12);
+      g.fillStyle = pick(["#141a20", "#1a2128", "#111619", "#1e252d"]);
+      g.fillRect(bx, y, bw, bh);
+      g.strokeStyle = "rgba(255,255,255,.055)"; g.lineWidth = 1;
+      g.strokeRect(bx + .5, y + .5, bw - 1, bh - 1);
+      for (let i = 0; i < Math.floor(bw * bh / 2300); i++) {
+        const w2 = rr(6, 20), h2 = rr(6, 16);
+        g.fillStyle = rnd() < 0.30 ? "rgba(240,192,90,.42)" : "rgba(255,255,255,.05)";
+        g.fillRect(bx + rr(4, Math.max(5, bw - w2 - 4)), y + rr(4, Math.max(5, bh - h2 - 4)), w2, h2);
+      }
+      if (rnd() < 0.55) {
+        g.fillStyle = "rgba(180,200,215,.12)";
+        g.beginPath(); g.arc(bx + rr(14, Math.max(15, bw - 14)), y + rr(14, Math.max(15, bh - 14)), rr(5, 11), 0, 6.3); g.fill();
+      }
+      y += bh + rr(8, 26);
+    }
+
+    /* --- the pavement strip nearest the road: where Bangkok actually lives */
+    const pw = Math.min(26, wd);
+    const px = sd.left ? sd.b - pw : sd.a;
+    g.fillStyle = "#1c2329"; g.fillRect(px, 0, pw, H);
+    g.strokeStyle = "rgba(255,255,255,.05)";
+    for (let ty = 0; ty < H; ty += 14) { g.beginPath(); g.moveTo(px, ty); g.lineTo(px + pw, ty); g.stroke(); }
+    g.fillStyle = "rgba(0,0,0,.35)";                        // kerb shadow
+    g.fillRect(sd.left ? px + pw - 3 : px, 0, 3, H);
+
+    for (let ty = rr(0, 60); ty < H; ty += rr(46, 120)) {
+      const r = rnd();
+      const cx2 = px + pw / 2;
+      if (r < 0.3) {                                        // street tree
+        g.fillStyle = "rgba(38,66,48,.85)";
+        g.beginPath(); g.arc(cx2, ty, rr(7, 12), 0, 6.3); g.fill();
+        g.fillStyle = "rgba(60,96,68,.5)";
+        g.beginPath(); g.arc(cx2 - 2, ty - 2, rr(3, 6), 0, 6.3); g.fill();
+      } else if (r < 0.55) {                                // vendor cart + brolly
+        g.fillStyle = "rgba(190,60,60,.55)";
+        g.beginPath(); g.arc(cx2, ty, rr(9, 13), 0, 6.3); g.fill();
+        g.fillStyle = "rgba(255,255,255,.16)"; g.fillRect(cx2 - 5, ty - 3, 10, 6);
+      } else if (r < 0.78) {                                // parked motorcycles
+        for (let i = 0; i < 3; i++) {
+          g.fillStyle = "rgba(210,220,230,.20)";
+          g.fillRect(cx2 - 7 + i * 5, ty - 6, 3.2, 12);
+        }
+      } else {                                              // shop sign spilling light
+        g.fillStyle = "rgba(240,192,90,.16)";
+        g.fillRect(sd.left ? px - 12 : px + pw, ty - 9, 12, 18);
+      }
+    }
+  }
+  _seed = save;
+  cityCv = c;
+  return c;
+}
+
+function drawRoad() {
+  ctx.drawImage(city(), 0, 0);
+  const yTop = -20, yBot = H + 20;
+  const jy0 = y_of(CFG.JUNCTION_END), jy1 = y_of(CFG.STOP_LINE);
+
+  /* asphalt */
+  ctx.fillStyle = "#282e34";
+  ctx.fillRect(ROAD_X, yTop, ROAD_W, yBot - yTop);
+  /* worn wheel tracks */
+  ctx.fillStyle = "rgba(0,0,0,.15)";
+  for (let l = 0; l < CFG.LANES; l++) {
+    const cx = x_of(l), lw = CFG.LANE_W * PPM;
+    ctx.fillRect(cx - lw * .30, yTop, lw * .15, yBot - yTop);
+    ctx.fillRect(cx + lw * .15, yTop, lw * .15, yBot - yTop);
+  }
+
+  /* Sukhumvit, crossing. Faded at the far edges so the HUD has clean ground. */
+  const fade = ctx.createLinearGradient(0, 0, W, 0);
+  fade.addColorStop(0, "rgba(34,39,44,.35)");
+  fade.addColorStop(.22, "rgba(34,39,44,1)");
+  fade.addColorStop(.78, "rgba(34,39,44,1)");
+  fade.addColorStop(1, "rgba(34,39,44,.35)");
+  ctx.fillStyle = fade;
+  ctx.fillRect(0, jy0, W, jy1 - jy0);
+  ctx.strokeStyle = "rgba(217,210,182,.16)"; ctx.lineWidth = 1;
+  ctx.setLineDash([14, 12]);
+  for (let i = 1; i < 4; i++) {
+    const yy = jy0 + (jy1 - jy0) * i / 4;
+    ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(W, yy); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  /* lane dashes on our road, stopping at the line */
+  ctx.strokeStyle = "rgba(217,210,182,.40)"; ctx.lineWidth = 2;
+  ctx.setLineDash([15, 15]);
+  for (let i = 1; i < CFG.LANES; i++) {
+    ctx.beginPath(); ctx.moveTo(edgeX(i), jy1); ctx.lineTo(edgeX(i), yBot); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.strokeStyle = "rgba(217,210,182,.5)";
+  for (const x of [ROAD_X + 1.5, ROAD_X + ROAD_W - 1.5]) {
+    ctx.beginPath(); ctx.moveTo(x, jy1); ctx.lineTo(x, yBot); ctx.stroke();
+  }
+
+  /* stop line + zebra */
+  ctx.fillStyle = "rgba(242,238,220,.88)";
+  ctx.fillRect(ROAD_X, jy1 - 5, ROAD_W, 5);
+  ctx.fillStyle = "rgba(242,238,220,.30)";
+  for (let i = 0; i < 9; i++)
+    ctx.fillRect(ROAD_X + i * (ROAD_W / 9) + 2, jy1 + 4, ROAD_W / 9 - 6, 15);
+
+  /* bus stop shelter, kerbside */
+  const bsy = y_of(21);
+  ctx.fillStyle = "#20282f"; ctx.fillRect(ROAD_X - 40, bsy - 36, 28, 72);
+  ctx.strokeStyle = "rgba(255,255,255,.10)"; ctx.strokeRect(ROAD_X - 39.5, bsy - 35.5, 27, 71);
+  ctx.fillStyle = "rgba(240,192,90,.32)"; ctx.fillRect(ROAD_X - 37, bsy - 31, 6, 62);
+
+  /* pedestrian footbridge across the road */
+  const fby = y_of(11);
+  ctx.fillStyle = "rgba(10,14,18,.5)"; ctx.fillRect(0, fby - 10, W, 20);
+  ctx.fillStyle = "rgba(150,168,184,.18)";
+  ctx.fillRect(0, fby - 10, W, 3); ctx.fillRect(0, fby + 7, W, 3);
+}
+
+function drawCar(c, xOverride) {
+  const x = xOverride !== undefined ? xOverride : x_of(c.lane);
+  const y = y_of(c.s);
+  const w = c.w * PPM, h = c.len * PPM;
+  const x0 = x - w / 2, y0 = y - h / 2;
+  if (y0 > H + 40 || y0 + h < -40) return;
+
+  ctx.fillStyle = "rgba(0,0,0,.40)";
+  rrect(x0 + 2, y0 + 3, w, h, w * .22); ctx.fill();
+  ctx.fillStyle = c.col;
+  rrect(x0, y0, w, h, c.isBus ? w * .16 : w * .24); ctx.fill();
+
+  if (c.isBus) {
+    ctx.fillStyle = "rgba(255,255,255,.14)"; ctx.fillRect(x0 + 1, y0 + h * .14, w - 2, h * .05);
+    ctx.fillStyle = c.win; ctx.fillRect(x0 + w * .12, y0 + h * .04, w * .76, h * .06);
+    for (let i = 0; i < 5; i++) {
+      ctx.fillRect(x0 + w * .06, y0 + h * (.22 + i * .14), w * .10, h * .10);
+      ctx.fillRect(x0 + w * .84, y0 + h * (.22 + i * .14), w * .10, h * .10);
+    }
+    ctx.fillStyle = "rgba(255,255,255,.5)";
+    ctx.font = FONT(600, Math.max(7, w * .30));
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("ปอ.", x, y0 + h * .55);
+    return;
+  }
+
+  ctx.fillStyle = c.win;                                    // glass
+  rrect(x0 + w * .12, y0 + h * .10, w * .76, h * .20, w * .10); ctx.fill();
+  rrect(x0 + w * .13, y0 + h * .70, w * .74, h * .18, w * .10); ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,.07)";                  // roof sheen
+  rrect(x0 + w * .16, y0 + h * .33, w * .68, h * .34, w * .08); ctx.fill();
+  ctx.fillStyle = c.col;                                    // mirrors
+  ctx.fillRect(x0 - w * .10, y0 + h * .27, w * .10, Math.max(2, h * .05));
+  ctx.fillRect(x0 + w, y0 + h * .27, w * .10, Math.max(2, h * .05));
+  ctx.fillStyle = "rgba(255,246,214,.7)";                   // headlights
+  ctx.fillRect(x0 + w * .13, y0 + 1, w * .20, 2.4);
+  ctx.fillRect(x0 + w * .67, y0 + 1, w * .20, 2.4);
+  const br = c.brake > 0 || c.v < 0.2;                      // tail lights
+  ctx.fillStyle = br ? "rgba(255,72,60,.95)" : "rgba(150,40,34,.7)";
+  ctx.fillRect(x0 + w * .11, y0 + h - 3.6, w * .22, 3.2);
+  ctx.fillRect(x0 + w * .67, y0 + h - 3.6, w * .22, 3.2);
+  if (c.kind === "taxi") {
+    ctx.fillStyle = "rgba(255,255,255,.85)";
+    ctx.fillRect(x - w * .14, y0 + h * .30, w * .28, 3);
+  }
+
+  if (c.isPlayer) {
+    ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = 1.8;
+    rrect(x0 - 3, y0 - 3, w + 6, h + 6, w * .28); ctx.stroke();
+    ctx.fillStyle = "#fff";
+    ctx.font = FONT(700, Math.max(10, PPM * .72));
+    ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    ctx.fillText("คุณ", x, y0 - 6);
+  }
+}
+
+function drawMoto(m) {
+  const x = edgeX(m.edge) + Math.sin(m.wob) * 2.6;
+  const y = y_of(m.s);
+  if (y < -30 || y > H + 30) return;
+  const w = 0.92 * PPM, h = 2.1 * PPM;
+  ctx.fillStyle = "rgba(0,0,0,.38)";
+  rrect(x - w / 2 + 1.5, y - h / 2 + 2, w, h, w * .4); ctx.fill();
+  ctx.fillStyle = "#12161a";
+  rrect(x - w / 2, y - h / 2, w, h, w * .4); ctx.fill();
+  ctx.fillStyle = m.col;                                    // rider
+  ctx.beginPath(); ctx.arc(x, y, Math.max(2.6, w * .44), 0, 6.3); ctx.fill();
+  if (m.box) { ctx.fillStyle = "#2fbf6d"; ctx.fillRect(x - w * .45, y + h * .14, w * .9, w); }
+  ctx.fillStyle = "rgba(255,250,225,.9)";
+  ctx.fillRect(x - 1.4, y - h / 2 - 2, 2.8, 3);
+}
+
+function drawCross() {
+  const jy0 = y_of(CFG.JUNCTION_END), jy1 = y_of(CFG.STOP_LINE);
+  for (const c of G.cross) {
+    const y = jy0 + (jy1 - jy0) * (c.row + .5) / 4;
+    const w = c.len, h = c.wd;                              // sideways
+    /* fade out toward the edges, matching the road, so nothing floats
+       over the city blocks or under the HUD */
+    ctx.globalAlpha = clamp(Math.min(c.x, W - c.x) / (W * 0.22), 0, 1);
+    ctx.fillStyle = "rgba(0,0,0,.35)";
+    rrect(c.x - w / 2 + 2, y - h / 2 + 2, w, h, h * .24); ctx.fill();
+    ctx.fillStyle = c.col;
+    rrect(c.x - w / 2, y - h / 2, w, h, h * .24); ctx.fill();
+    ctx.fillStyle = c.win;
+    rrect(c.x - w * (c.dir ? .40 : .10), y - h * .34, w * .20, h * .68, 2); ctx.fill();
+    rrect(c.x + w * (c.dir ? .20 : -.30), y - h * .32, w * .18, h * .64, 2); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+/* The signal head. This is the win condition, so it is drawn big and loud
+   on both kerbs and it throws light onto the asphalt in front of it. */
+function drawSignal() {
+  const jy1 = y_of(CFG.STOP_LINE);
+  const ph = G.signal.phase;
+  const lamps = [["RED", "#ff4438"], ["YELLOW", "#ffc247"], ["GREEN", "#3fe08a"]];
+  const r = clamp(PPM * 0.34, 5, 8);
+  const boxW = r * 3.2, boxH = r * 8.2;
+
+  /* a wash of the live colour across the stop line */
+  ctx.save();
+  ctx.globalAlpha = 0.14;
+  ctx.fillStyle = lamps.find((c) => c[0] === ph)[1];
+  ctx.fillRect(ROAD_X, jy1 - PPM * 1.2, ROAD_W, PPM * 1.6);
+  ctx.restore();
+
+  for (const side of [-1, 1]) {
+    const px = side < 0 ? ROAD_X - 14 - boxW : ROAD_X + ROAD_W + 14;
+    const py = jy1 - boxH - 4;
+    /* mast */
+    ctx.strokeStyle = "#39434c"; ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(px + boxW / 2, py + boxH + 26);
+    ctx.lineTo(px + boxW / 2, py + boxH);
+    ctx.stroke();
+    /* housing */
+    ctx.fillStyle = "rgba(0,0,0,.45)";
+    rrect(px + 2, py + 3, boxW, boxH, r); ctx.fill();
+    ctx.fillStyle = "#0d1216";
+    rrect(px, py, boxW, boxH, r); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,.10)"; ctx.lineWidth = 1;
+    rrect(px + .5, py + .5, boxW - 1, boxH - 1, r); ctx.stroke();
+    lamps.forEach((c, i) => {
+      const on = ph === c[0];
+      const cx = px + boxW / 2, cy = py + r * 1.6 + i * r * 2.5;
+      if (on) { ctx.shadowColor = c[1]; ctx.shadowBlur = r * 3.4; }
+      ctx.fillStyle = on ? c[1] : "rgba(255,255,255,.08)";
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.3); ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+  }
+}
+
+function drawSkytrain() {
+  /* the viaduct runs along Sukhumvit, straight over the junction */
+  const jy0 = y_of(CFG.JUNCTION_END), jy1 = y_of(CFG.STOP_LINE);
+  const cy = (jy0 + jy1) / 2;
+  const bh = Math.max(26, (jy1 - jy0) * 0.36);
+  const y0 = cy - bh / 2;
+
+  ctx.fillStyle = "rgba(0,0,0,.42)";                        // deck shadow
+  ctx.fillRect(0, y0 + 8, W, bh);
+
+  ctx.fillStyle = "#333c45";                                // piers
+  for (let i = 0; i < 5; i++) {
+    const px = (i + .5) * (W / 5);
+    ctx.fillRect(px - 10, y0 - 10, 20, bh + 20);
+    ctx.fillStyle = "rgba(255,255,255,.06)"; ctx.fillRect(px - 10, y0 - 10, 20, 2);
+    ctx.fillStyle = "#333c45";
+  }
+
+  const g = ctx.createLinearGradient(0, y0, 0, y0 + bh);     // deck
+  g.addColorStop(0, "#4c5765"); g.addColorStop(.48, "#3a444f"); g.addColorStop(1, "#2b333b");
+  ctx.fillStyle = g; ctx.fillRect(0, y0, W, bh);
+  ctx.fillStyle = "rgba(255,255,255,.16)"; ctx.fillRect(0, y0, W, 2.5);
+  ctx.fillStyle = "rgba(0,0,0,.45)"; ctx.fillRect(0, y0 + bh - 2.5, W, 2.5);
+  ctx.fillStyle = "rgba(200,215,228,.24)";                   // rails
+  ctx.fillRect(0, y0 + bh * .26, W, 2); ctx.fillRect(0, y0 + bh * .70, W, 2);
+
+  if (!G.train) return;
+
+  const tr = G.train;
+  const L = Math.max(W * 0.66, 380), span = W + L * 2;
+  const x = tr.dir > 0 ? -L + span * tr.k : W + L - span * tr.k;
+  const th = bh * 0.74, ty = cy - th / 2;
+
+  ctx.fillStyle = "rgba(0,0,0,.5)";
+  rrect(x + 3, ty + 5, L, th, th * .22); ctx.fill();
+  const bg = ctx.createLinearGradient(0, ty, 0, ty + th);
+  bg.addColorStop(0, "#f6f9fb"); bg.addColorStop(.55, "#e3eaf0"); bg.addColorStop(1, "#b9c6d1");
+  ctx.fillStyle = bg;
+  rrect(x, ty, L, th, th * .22); ctx.fill();
+  ctx.fillStyle = "rgba(52,168,83,.85)";
+  ctx.fillRect(x + th * .2, ty + th * .13, L - th * .4, Math.max(2, th * .08));
+  ctx.fillStyle = "rgba(143,214,239,.9)";
+  ctx.fillRect(x + th * .2, ty + th * .79, L - th * .4, Math.max(2, th * .08));
+  const nCars = 4, cw = L / nCars;
+  for (let i = 0; i < nCars; i++) {
+    ctx.fillStyle = "rgba(28,36,44,.85)";
+    for (let j = 0; j < 6; j++)
+      ctx.fillRect(x + i * cw + cw * (.10 + j * .135), ty + th * .30, cw * .10, th * .40);
+    if (i) { ctx.fillStyle = "rgba(0,0,0,.3)"; ctx.fillRect(x + i * cw - 1.5, ty, 3, th); }
+  }
+  /* the line, written on the side of the train */
+  ctx.fillStyle = "rgba(18,26,33,.94)";
+  ctx.font = FONT(700, clamp(th * .30, 9, 19));
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(CFG.TRAIN_TEXT, x + L / 2, ty + th * .56);
+
+  /* and again, big, over the whole city, because it bears repeating */
+  const fade = Math.sin(clamp(tr.k, 0, 1) * Math.PI);
+  if (fade > 0.02) {
+    ctx.save();
+    ctx.globalAlpha = fade * .92;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    const fs = clamp(W * .055, 18, 42);
+    const yy = H * 0.40;
+    ctx.font = FONT(700, fs);
+    ctx.shadowColor = "rgba(0,0,0,.95)"; ctx.shadowBlur = 22;
+    ctx.fillStyle = "#8fd6ef";
+    ctx.fillText(CFG.TRAIN_TEXT, W / 2, yy);
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = fade * .6;
+    ctx.font = FONT(400, fs * .40);
+    ctx.fillStyle = "#c3ccd6";
+    ctx.fillText("อโศก → พร้อมพงษ์  2 นาที", W / 2, yy + fs * .95);
+    ctx.restore();
+  }
+}
+
+/* ------------------------------------------------------------------- HUD    */
+function pill(text, cx, cy, fs, fg, bg) {
+  ctx.font = FONT(600, fs);
+  const w = ctx.measureText(text).width + fs * 1.5;
+  ctx.fillStyle = bg;
+  rrect(cx - w / 2, cy - fs * .95, w, fs * 1.9, fs * .7); ctx.fill();
+  ctx.fillStyle = fg;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(text, cx, cy);
+}
+
+function phaseCol() {
+  const ph = G.signal.phase;
+  return ph === "GREEN" ? "#4ddb8b" : ph === "YELLOW" ? "#ffc247" : "#ff7a72";
+}
+function phaseSecs() {
+  const ph = G.signal.phase;
+  if (ph === "RED") return null;                 // a red never tells you
+  return Math.max(0, (ph === "GREEN" ? G.signal.green : CFG.YELLOW) - G.signal.tp).toFixed(1);
+}
+
+/* --- phones: one strip across the top, nothing over the road --- */
+function drawHUDCompact() {
+  const p = G.player;
+  ctx.fillStyle = "rgba(9,12,16,.86)";
+  ctx.fillRect(0, 0, W, PAD_T - 34);
+  ctx.fillStyle = "rgba(233,237,242,.12)";
+  ctx.fillRect(0, PAD_T - 34, W, 1);
+
+  ctx.textBaseline = "middle";
+  ctx.font = FONT(700, 16);
+  ctx.fillStyle = phaseCol();
+  ctx.textAlign = "left";
+  ctx.fillText(signalLabel(), 12, 22);
+  const secs = phaseSecs();
+  if (secs !== null) {
+    ctx.textAlign = "right";
+    ctx.fillText(`${secs} วิ`, W - 12, 22);
+  }
+
+  const chips = [
+    ["เส้นหยุด", `${thNum(Math.max(0, CFG.STOP_LINE - (p.s + p.len / 2)), 1)} ม.`],
+    ["มุด", `${G.st.weaveOk}/${G.st.weaveOk + G.st.weaveFail}`],
+    ["นิ่ง", `${thNum(G.st.still)} วิ`],
+    ["BTS", `${G.st.trains}`],
+    ["แตร", `${G.st.horn}`],
+  ];
+  const cw = W / chips.length;
+  ctx.font = FONT(400, 10.5);
+  chips.forEach(([a, b], i) => {
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#8b98a6"; ctx.fillText(a, cw * (i + .5), 45);
+    ctx.fillStyle = "#e9edf2"; ctx.font = FONT(600, 12.5);
+    ctx.fillText(b, cw * (i + .5), 62);
+    ctx.font = FONT(400, 10.5);
+  });
+
+  ctx.fillStyle = "rgba(255,255,255,.08)";
+  rrect(12, PAD_T - 48, W - 24, 4, 2); ctx.fill();
+  ctx.fillStyle = G.boredom > 70 ? "#ff7a72" : G.boredom > 35 ? "#ffc247" : "#4ddb8b";
+  rrect(12, PAD_T - 48, (W - 24) * (G.boredom / 100), 4, 2); ctx.fill();
+}
+
+/* --- desktop: the full ledger of your wasted afternoon, bottom-left --- */
+function drawHUDFull() {
+  const p = G.player;
+  const fs = 12.5, pad = 10, rowH = fs * 1.62;
+
+  const rows = [
+    ["เวลา", clockStr(CFG.CLOCK_START + G.play * CFG.CLOCK_RATE)],
+    ["ถึงเส้นหยุด", `${thNum(Math.max(0, CFG.STOP_LINE - (p.s + p.len / 2)), 1)} ม.`],
+    ["ความเร็วเฉลี่ย", `${thNum(avgKmh(), 1)} กม./ชม.`],
+    ["รถไม่ขยับมาแล้ว", `${thNum(G.st.still)} วิ`],
+    ["มุด สำเร็จ/ไม่สำเร็จ", `${G.st.weaveOk} / ${G.st.weaveFail}`],
+    ["มอไซค์แซงคุณ", `${thNum(G.st.motos)} คัน`],
+    ["BTS แซงคุณ", `${thNum(G.st.trains)} ขบวน`],
+    ["บีบแตร", `${thNum(G.st.horn)} ครั้ง · ไม่มีผล`],
+  ];
+
+  /* panel sits low-left, clear of the junction and the skytrain */
+  ctx.font = FONT(400, fs);
+  let wMax = 150;
+  for (const [a, b] of rows)
+    wMax = Math.max(wMax, ctx.measureText(a).width + ctx.measureText(b).width + 20);
+  const bw = Math.min(wMax + pad * 2, W - 20);
+  const bh = rowH * rows.length + pad * 2 + rowH * 1.55 + 9;
+  const bx = 10, by = clamp(H - 88 - bh, 8, H);
+
+  ctx.fillStyle = "rgba(9,12,16,.80)";
+  rrect(bx, by, bw, bh, 12); ctx.fill();
+  ctx.strokeStyle = "rgba(233,237,242,.13)"; ctx.lineWidth = 1;
+  rrect(bx + .5, by + .5, bw - 1, bh - 1, 12); ctx.stroke();
+
+  /* the headline: what the light is doing */
+  ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  ctx.fillStyle = phaseCol();
+  ctx.font = FONT(700, fs * 1.2);
+  ctx.fillText(signalLabel(), bx + pad, by + pad + rowH * .7);
+  const secs = phaseSecs();                     // green gets a number. red never does.
+  if (secs !== null) {
+    ctx.textAlign = "right";
+    ctx.fillText(`${secs} วิ`, bx + bw - pad, by + pad + rowH * .7);
+  }
+
+  let y = by + pad + rowH * 1.8;
+  ctx.font = FONT(400, fs);
+  for (const [a, b] of rows) {
+    ctx.fillStyle = "#8b98a6"; ctx.textAlign = "left";  ctx.fillText(a, bx + pad, y);
+    ctx.fillStyle = "#e9edf2"; ctx.textAlign = "right"; ctx.fillText(b, bx + bw - pad, y);
+    y += rowH;
+  }
+
+  /* boredom */
+  const my = by + bh - pad - 1;
+  ctx.fillStyle = "rgba(255,255,255,.08)";
+  rrect(bx + pad, my - 4, bw - pad * 2, 5, 3); ctx.fill();
+  ctx.fillStyle = G.boredom > 70 ? "#ff7a72" : G.boredom > 35 ? "#ffc247" : "#4ddb8b";
+  rrect(bx + pad, my - 4, (bw - pad * 2) * (G.boredom / 100), 5, 3); ctx.fill();
+}
+
+function drawHUD() {
+  if (SMALL) drawHUDCompact(); else drawHUDFull();
+
+  /* toasts stack downwards in the band of road above the junction — the one
+     place on screen that is never covering a car you are trying to squeeze past */
+  const tfs = clamp(W * .033, 12, 15);
+  let ty = PAD_T + (SMALL ? 8 : 18);
+  const shown = G.toasts.slice(-3);
+  for (let i = shown.length - 1; i >= 0; i--) {
+    const t = shown[i];
+    ctx.globalAlpha = clamp(t.life / .7, 0, 1);
+    pill(t.msg, W / 2, ty, tfs, TOAST_COL[t.kind] || "#e9edf2", "rgba(8,11,15,.88)");
+    ctx.globalAlpha = 1;
+    ty += tfs * 2.4;
+  }
+
+  /* teach the one verb that matters, then get out of the way */
+  if (G.hint > 0 && G.state === "PLAYING") {
+    ctx.globalAlpha = clamp(G.hint, 0, 1);
+    const label = SMALL ? "ปัดซ้าย/ขวา เพื่อมุดแทรกช่องว่างในเลนข้างๆ"
+                        : "กด ◀ ▶ เพื่อมุดแทรกช่องว่างในเลนข้างๆ";
+    pill(label, W / 2, y_of(CFG.START_S) - PPM * 3.6,
+         clamp(W * .033, 11.5, 15), "#e9edf2", "rgba(8,11,15,.86)");
+    ctx.globalAlpha = 1;
+  }
+}
+function avgKmh() {
+  const d = G.player.s - G.player.dist0;
+  return G.play > .5 ? Math.max(0, d / G.play) * 3.6 : 0;
+}
+
+/* ------------------------------------------------------------------ FRAME   */
+function render() {
+  ctx.clearRect(0, 0, W, H);
+  drawRoad();
+  drawCross();
+  drawSignal();
+  for (let l = 0; l < CFG.LANES; l++)
+    for (const c of G.lanes[l]) if (!c.isPlayer) drawCar(c);
+  for (const m of G.motos) drawMoto(m);
+  const p = G.player;
+  drawCar(p, x_of(p.lane) + (p.weave ? p.weave.off * PPM : 0));
+  drawSkytrain();
+
+  /* vignette: pull the eye back to the road */
+  const vg = ctx.createRadialGradient(W / 2, H * .55, Math.min(W, H) * .35, W / 2, H * .55, Math.max(W, H) * .75);
+  vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,.55)");
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+
+  drawHUD();
+}
+
+/* -------------------------------------------------------------------- LOOP  */
+let running = false, last = 0, acc = 0;
+const STEP = 1 / 60;
+
+function step(dt) {
+  G.t += dt;
+  if (G.state !== "WON") G.play += dt;
+  if (G.hint > 0 && G.play > 8) G.hint -= dt * 0.8;
+  if (tapGo > 0) tapGo -= dt;
+
+  Input.up = !!(keys["arrowup"] || keys["w"]);
+  if (Input.weave) { tryWeave(Input.weave); Input.weave = 0; }
+  if (Input.horn) {
+    Input.horn = false; G.st.horn++; Sfx.horn();
+    if (G.st.horn === 3)  toast("บีบแตรครั้งที่ 3 — สภาพการจราจร: ไม่เปลี่ยนแปลง", "dim");
+    if (G.st.horn === 10) toast("บีบแตรครั้งที่ 10 — ยังไม่มีอะไรเกิดขึ้น", "dim");
+    if (G.st.horn === 25) toast("25 ครั้ง คนข้างๆ มองมาแล้ว แต่รถก็ยังไม่ขยับ", "dim");
+    if (G.st.horn === 50) toast("50 ครั้ง คุณคือส่วนหนึ่งของมลภาวะทางเสียงของกรุงเทพแล้ว", "dim");
+  }
+
+  updateSignal(dt);
+  updateTraffic(dt);
+  updatePlayer(dt);
+  updateMotos(dt);
+  updateCutIns(dt);
+  updateCross(dt);
+  updateTrain(dt);
+  if (G.state === "PLAYING") updateBoredom(dt);
+
+  for (let i = G.toasts.length - 1; i >= 0; i--)
+    if ((G.toasts[i].life -= dt) <= 0) G.toasts.splice(i, 1);
+}
+
+function loop(now) {
+  if (!running) return;
+  if (!last) last = now;
+  let dt = (now - last) / 1000; last = now;
+  if (dt > .5) dt = .5;                          // the tab was in the background
+  acc += dt;
+  let guard = 0;
+  while (acc >= STEP && guard++ < 8) { step(STEP); acc -= STEP; }
+  render();
+  requestAnimationFrame(loop);
+}
+
+/* -------------------------------------------------------------------- FLOW  */
+const vStart = document.getElementById("v-start");
+const vEnd   = document.getElementById("v-end");
+
+function start(round) {
+  newGame(round);
+  G.hint = 1;
+  vStart.hidden = true; vEnd.hidden = true;
+  running = true; last = 0; acc = 0;
+  requestAnimationFrame(loop);
+}
+
+function showEnd() {
+  running = false;
+  const s = G.st;
+  document.getElementById("e-title").textContent =
+    s.redRuns ? "ผ่านแยกอโศกแล้ว (แบบไม่สง่างาม)" : "ผ่านแยกอโศกแล้ว!";
+  document.getElementById("e-sub").textContent = s.redRuns
+    ? "คุณฝ่าไฟแดง ติดกลางแยก และโดนใบสั่ง — แต่ก็ผ่านมาได้"
+    : "คุณข้ามเส้นหยุดได้ทันจังหวะไฟเขียว";
+
+  const rows = [
+    ["เวลาที่ใช้ผ่านแยกเดียว", mmss(G.winAt)],
+    ["เวลาที่รถไม่ขยับเลย", `${thNum(s.still)} วิ (${Math.round(s.still / Math.max(1, G.winAt) * 100)}%)`],
+    ["ระยะทางที่ไปได้", `${thNum(CFG.JUNCTION_END - G.player.dist0, 1)} เมตร`],
+    ["ความเร็วเฉลี่ย", `${thNum(avgKmh(), 1)} กม./ชม.`],
+    ["มุดสำเร็จ", `${s.weaveOk} ครั้ง`],
+    ["มุดไม่สำเร็จ", `${s.weaveFail} ครั้ง`],
+    ["บีบแตร", `${s.horn} ครั้ง (ไม่มีผล)`],
+    ["มอเตอร์ไซค์ที่แซงคุณ", `${s.motos} คัน`],
+    ["BTS ที่แซงคุณ", `${s.trains} ขบวน`],
+    ["รอบไฟแดงที่นั่งรอ", `${s.cycles} รอบ`],
+    ["รถที่ออกจากซอยมาแทรกหน้าคุณ", `${s.cutIns} คัน`],
+  ];
+  if (s.redRuns) rows.push(["ฝ่าไฟแดง", `${s.redRuns} ครั้ง`]);
+  if (s.fine) rows.push(["ค่าปรับ", `${thNum(s.fine)} บาท`]);
+
+  document.getElementById("e-stats").innerHTML =
+    rows.map(([a, b]) => `<li><span>${a}</span><b>${b}</b></li>`).join("");
+  document.getElementById("e-quip").textContent = `${pick(TEXT.quip)}\n\n${pick(TEXT.next)}`;
+  const again = document.getElementById("b-again");
+  again.textContent = `ขับต่อ — รอบที่ ${G.round + 1}`;
+  again.onclick = () => start(G.round + 1);
+  vEnd.hidden = false;
+}
+
+document.getElementById("b-start").addEventListener("click", () => { Sfx.unlock(); start(1); });
+const muteBtn = document.getElementById("b-mute");
+function muteLabel() { muteBtn.textContent = Sfx.muted ? "🔇 เสียง: ปิด" : "🔊 เสียง: เปิด"; }
+muteBtn.addEventListener("click", (e) => { e.stopPropagation(); Sfx.muted = !Sfx.muted; muteLabel(); });
+addEventListener("keydown", (e) => {
+  if (e.key === "m") { Sfx.muted = !Sfx.muted; muteLabel(); }
+  if (!running && !vStart.hidden && (e.key === "Enter" || e.key === " ")) { Sfx.unlock(); start(1); }
+});
+
+/* the start card quotes the real numbers, so the copy can never drift */
+resize();
+newGame(1);
+document.getElementById("c-dist").textContent =
+  thNum(Math.round(CFG.STOP_LINE - G.player.dist0));
+document.getElementById("c-red").textContent = thNum(CFG.RED);
+document.getElementById("c-green").textContent = thNum(CFG.GREEN, 1);
+document.getElementById("c-ped").textContent = thNum(CFG.PED_DELAY, 1);
+render();
+if (document.fonts && document.fonts.ready)
+  document.fonts.ready.then(() => { if (!running) render(); });
+</script>
