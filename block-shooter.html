@@ -161,7 +161,7 @@ canvas#cv{
 
 <div>
   <h1 class="title">BLOCK SHOOTER</h1>
-  <p class="subtitle" id="uiSubtitle">ก้อนแหว่ง ๆ ลอยเข้ามาไม่หยุด — ยิงเติมให้เต็มเป็นสี่เหลี่ยม แล้วมันจะระเบิด</p>
+  <p class="subtitle" id="uiSubtitle">ก้อนแหว่ง ๆ ลอยเข้ามาไม่หยุด — ยิงเติมให้เป็นสี่เหลี่ยมทึบเป๊ะ ๆ แล้วมันจะระเบิด</p>
 </div>
 
 <div class="hud">
@@ -182,14 +182,17 @@ canvas#cv{
   <div class="overlay" id="ovStart">
     <h2>พร้อมยิงหรือยัง?</h2>
     <p><b style="color:#9dff3c">สิ่งที่ต้องทำ</b> — ก้อนสี่เหลี่ยมแหว่ง ๆ ลอยเข้ามาจากขวาไม่หยุด
-       ยิงกระสุนเติมรอยแหว่งให้เต็มเป็นสี่เหลี่ยม แล้วก้อนนั้นจะระเบิดหายไป<br>
-       ปล่อยให้มันไหลมาถึง<b style="color:#ff3ea5">เส้นแดง</b>ทางซ้ายเมื่อไหร่ = จบเกม</p>
+       ยิงกระสุนเติมรอยแหว่งให้รูปทรง<b>กลายเป็นสี่เหลี่ยมทึบเป๊ะ ๆ</b> แล้วมันจะระเบิด<br>
+       มีบล็อกยื่นออกมานอกรูปทรงแม้ช่องเดียว = ยังไม่ใช่สี่เหลี่ยม = <b>ไม่ระเบิด</b>
+       ยิงมั่วจึงไม่มีทางผ่าน<br>
+       ปล่อยให้ก้อนไหลมาถึง<b style="color:#ff3ea5">เส้นแดง</b>ทางซ้ายเมื่อไหร่ = จบเกม</p>
 
     <p><b style="color:#22e3ff">เกมบอกใบ้ให้หมดแล้ว</b><br>
        <b>เงาจาง ๆ</b> ในสนาม คือจุดที่กระสุนนัดนี้จะไปเกาะ — เล็งตามเงาได้เลย ไม่ต้องเดา<br>
        <b>วงกลมประ</b> ในก้อน คือช่องที่ยังขาด เติมครบเมื่อไหร่ระเบิดเมื่อนั้น<br>
        <b>เส้นประสีชมพู</b>พาดแถวไหน แปลว่าแถวนั้นไม่มีอะไรให้ชน ยิงไปก็เสียนัดเปล่า<br>
-       ยิงพลาดไปเกาะ<b>นอกกรอบ</b>ไม่ต้องกลัว บล็อกนั้นจะค่อย ๆ จางแล้วหลุดไปเอง ไม่ค้างเป็นขยะ</p>
+       <b style="color:#ff3ea5">กรอบชมพูขีดประ</b> = มีบล็อกยื่นออกมาทำรูปทรงเสีย ยิงเพิ่มตอนนี้มีแต่เสียนัด<br>
+       บล็อกที่ยื่นออกมาจะจางแล้วร่วงไปเองใน 2 วินาที ผิดแล้วแก้ตัวได้ แต่เสียเวลา</p>
 
     <p><b style="color:#ff8a3d">ยิ่งเก็บก้อนใหญ่ยิ่งคุ้ม</b> — ก้อน 4×4 ก้อนเดียวได้คะแนนมากกว่า
        ก้อน 2×2 สี่ก้อนรวมกัน จะรีบเก็บหรือปล่อยให้โตก่อนก็คิดเอา<br>
@@ -243,7 +246,7 @@ canvas#cv{
 <p class="hint" id="uiHint">กระสุนยาว ๆ ยิงเข้าขั้นบันไดทีเดียวเติมได้หลายชั้น &mdash; ช่องที่ชนจะเกาะติด ส่วนช่องที่ยังโล่งบินต่อไปเอง<br>
 เคลียร์ได้ 1 ก้อน กำแพงจะถอยให้หายใจอีกนิด &middot; ก้อนใหญ่คะแนนดีกว่าก้อนเล็กแบบทวีคูณ &middot; ไม่มีนัดไหนเสียเลยได้โบนัส PERFECT<br>
 <b>ระเบิด</b> ล้าง 3&times;3 ตรงจุดที่ชน &middot; <b>เลเซอร์</b> ทะลุล้างทั้งแถว &mdash; ทั้งคู่ได้จากคอมโบ เก็บได้ทีละชิ้น<br>
-ก้อนแต่ละก้อนคิดกรอบของตัวเองแยกกัน เติมกรอบไหนเต็มก่อนก้อนนั้นระเบิดก่อน ไม่เกี่ยวกับก้อนข้าง ๆ &mdash; บล็อกที่ไปเกาะนอกกรอบจะจางแล้วหลุดไปเอง</p>
+<b>ระเบิดเมื่อรูปทรงเป็นสี่เหลี่ยมทึบเท่านั้น</b> &mdash; บล็อกที่ยื่นออกมาทำให้ยังไม่ระเบิด และจะร่วงไปเองใน 2 วินาที</p>
 
 <script>
 (function(){
@@ -849,6 +852,44 @@ function simulateShot(cells, row){
    แต่ละก้อนที่ลอยเข้ามามีรหัสของตัวเอง (cell.blob) และคิดกรอบของตัวเองแยกกัน
    บล็อกที่มาต่อติดข้าง ๆ ไม่เกี่ยว และสิ่งที่หายไปเป็นสี่เหลี่ยมเป๊ะ ๆ เสมอ
    ========================================================== */
+// บัฟเฟอร์ใช้ซ้ำ + เลขรุ่น แทนการจอง array 20×30 ใหม่ทุกครั้งที่กระสุนเกาะ
+var seenBuf = new Int32Array(ROWS * COLS);
+var seenGen = 0;
+var stackBuf = new Int32Array(ROWS * COLS);
+
+function components(){
+  var r, c, out = [];
+  seenGen++;
+  for (r = 0; r < ROWS; r++){
+    for (c = 0; c < COLS; c++){
+      var idx0 = r * COLS + c;
+      if (!S.cells[r][c] || seenBuf[idx0] === seenGen) continue;
+      var sp = 0, comp = [];
+      var r0 = r, r1 = r, c0 = c, c1 = c;
+      seenBuf[idx0] = seenGen;
+      stackBuf[sp++] = idx0;
+      while (sp){
+        var idx = stackBuf[--sp];
+        var cr = (idx / COLS) | 0, cc = idx % COLS;
+        comp.push([cr, cc]);
+        if (cr < r0) r0 = cr; if (cr > r1) r1 = cr;
+        if (cc < c0) c0 = cc; if (cc > c1) c1 = cc;
+        var nb = [[cr-1,cc],[cr+1,cc],[cr,cc-1],[cr,cc+1]];
+        for (var i = 0; i < 4; i++){
+          var nr = nb[i][0], nc = nb[i][1];
+          if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+          var nidx = nr * COLS + nc;
+          if (seenBuf[nidx] === seenGen || !S.cells[nr][nc]) continue;
+          seenBuf[nidx] = seenGen;
+          stackBuf[sp++] = nidx;
+        }
+      }
+      out.push({ cells: comp, r0:r0, r1:r1, c0:c0, c1:c1 });
+    }
+  }
+  return out;
+}
+
 /* กรอบเดิมของแต่ละก้อน — คิดจาก "ตัวตนของก้อน" ไม่ใช่กลุ่มที่ต่อกัน
    บล็อกที่ยิงพลาดไปเกาะข้างนอกกรอบจึงไม่ทำให้ก้อนนั้นตายถาวรอีกต่อไป */
 function blobBoxes(){
@@ -884,10 +925,17 @@ function markInside(boxes){
 }
 function insideBox(r, c){ return insideBuf[r * COLS + c] === insideGen; }
 
-function boxesCached(){
-  if (S.dirty || !boxCache){ boxCache = blobBoxes(); markInside(boxCache); S.dirty = false; }
-  return boxCache;
+var compCache = null;
+function refreshBoard(){
+  if (S.dirty || !boxCache){
+    boxCache = blobBoxes();
+    markInside(boxCache);
+    compCache = components();
+    S.dirty = false;
+  }
 }
+function boxesCached(){ refreshBoard(); return boxCache; }
+function compsCached(){ refreshBoard(); return compCache; }
 
 /* บล็อกที่ผู้เล่นยิงไปเกาะ "นอกกรอบก้อน" ไม่มีทางทำให้ก้อนไหนเต็มได้
    ปล่อยไว้ก็เป็นขยะ — ให้จางลงแล้วหลุดไปเอง ผู้เล่นเห็นชัดว่านัดนั้นไม่เข้าเป้า
@@ -937,26 +985,25 @@ function sweepDebris(){
   return gone;
 }
 
-/* กติกาเดียว: ก้อนที่ลอยเข้ามาระเบิดเมื่อ "กรอบเดิมของมัน" ถูกเติมจนเต็ม
-   สิ่งที่หายไปจึงเป็นสี่เหลี่ยมเป๊ะ ๆ เสมอ ไม่มีการลากบล็อกอื่นหายไปด้วย
+function isSolidRect(comp){
+  var h = comp.r1 - comp.r0 + 1;
+  var w = comp.c1 - comp.c0 + 1;
+  return h >= 2 && w >= 2 && comp.cells.length === w * h;
+}
+
+/* กติกาเดียว และเข้มงวด: กลุ่มบล็อกที่ต่อกันต้องเป็น "สี่เหลี่ยมทึบเป๊ะ ๆ" ถึงจะระเบิด
+   มีบล็อกยื่นออกมานอกรูปทรงแม้ช่องเดียว = ยังไม่ใช่สี่เหลี่ยม = ไม่ระเบิด
+   ยิงมั่วจึงไม่มีทางผ่าน ต้องเลือกกระสุน ท่าหมุน และแถวให้ลงพอดีจริง ๆ
+   (บล็อกที่ยื่นออกมาไม่ได้ค้างถาวร เดี๋ยวมันร่วงไปเอง — ดู decayLoose)
    ก้อนที่ยังไหลเข้ามาไม่ครบ (ติดขอบขวา) ไม่นับ ไม่งั้นขอบก้อนที่โผล่มาแค่บางส่วน
-   บังเอิญเต็มพอดี แล้วระเบิดฟรีตั้งแต่ยังไม่ได้ยิง */
+   บังเอิญเป็นสี่เหลี่ยมพอดี แล้วระเบิดฟรีตั้งแต่ยังไม่ได้ยิง */
 function clearTargets(){
-  var out = [], r, c, id, bx, w, h, cells, full;
-  var boxes = blobBoxes();
-  for (id in boxes){
-    bx = boxes[id];
-    if (bx.c1 >= COLS - 1) continue;
-    w = bx.c1 - bx.c0 + 1; h = bx.r1 - bx.r0 + 1;
-    if (w < 2 || h < 2) continue;
-    cells = []; full = true;
-    for (r = bx.r0; r <= bx.r1 && full; r++){
-      for (c = bx.c0; c <= bx.c1; c++){
-        if (!S.cells[r][c]){ full = false; break; }
-        cells.push([r, c]);
-      }
-    }
-    if (full) out.push({ cells: cells, w: w, h: h });
+  var out = [], comps = components(), i, cp;
+  for (i = 0; i < comps.length; i++){
+    cp = comps[i];
+    if (cp.c1 >= COLS - 1) continue;
+    if (!isSolidRect(cp)) continue;
+    out.push({ cells: cp.cells, w: cp.c1 - cp.c0 + 1, h: cp.r1 - cp.r0 + 1 });
   }
   return out;
 }
@@ -1263,22 +1310,44 @@ function drawLanding(slide, blocked){
   ctx.setLineDash([]);
 }
 
-// กรอบเดิมของแต่ละก้อน + จุดไข่ปลาตรงช่องที่ยังขาด — บอกว่า "อีกกี่ช่องจะระเบิด"
+/* กรอบช่วยเล็ง = กรอบของ "กลุ่มบล็อกที่ต่อกัน" ซึ่งคือสิ่งที่ต้องทำให้เป็นสี่เหลี่ยม
+   จุดไข่ปลา = ช่องที่ยังขาด · กรอบชมพูขีดประ = มีบล็อกยื่นออกมาทำรูปทรงเสีย
+   (รอให้มันร่วงก่อน ยิงเพิ่มตอนนี้มีแต่จะเสียนัด) */
 function drawTargets(slide){
-  var boxes = boxesCached();
+  var comps = compsCached();
   var ox = -slide * CELL;
-  for (var id in boxes){
-    var cp = boxes[id];
-    if (cp.c1 >= COLS - 1) continue;               // ยังไหลเข้ามาไม่ครบ ยังเคลียร์ไม่ได้
+  for (var i = 0; i < comps.length; i++){
+    var cp = comps[i];
+    if (cp.c1 >= COLS - 1) continue;
     var h = cp.r1 - cp.r0 + 1, w = cp.c1 - cp.c0 + 1;
     if (h < 2 || w < 2) continue;
-    var area = w * h, filled = 0, r, c;
-    for (r = cp.r0; r <= cp.r1; r++) for (c = cp.c0; c <= cp.c1; c++) if (S.cells[r][c]) filled++;
-    var ratio = filled / area;
-    var color = cp.color || '#ffffff';
+    var area = w * h;
+    if (area > 48) continue;
+    var ratio = cp.cells.length / area;
+    if (ratio < 0.45) continue;
+
+    var spoiled = false, color = null, j, r, c;
+    for (j = 0; j < cp.cells.length; j++){
+      r = cp.cells[j][0]; c = cp.cells[j][1];
+      var cell = S.cells[r][c];
+      if (!cell) continue;
+      if (cell.blob){ if (!color) color = cell.color; }
+      else if (!insideBox(r, c)) spoiled = true;      // บล็อกที่กำลังจาง = รูปทรงเสียอยู่
+    }
+    if (!color) color = '#ffffff';
 
     var x = PAD + (GUN_W + cp.c0) * CELL + 1.5 + ox;
     var y = PAD + cp.r0 * CELL + 1.5;
+    if (spoiled){
+      ctx.globalAlpha = 0.85;
+      ctx.strokeStyle = '#ff3ea5'; ctx.lineWidth = 1.8;
+      ctx.setLineDash([5, 4]);
+      roundRect(ctx, x, y, w * CELL - 3, h * CELL - 3, 9); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+      continue;
+    }
+
     ctx.globalAlpha = 0.16 + 0.6 * ratio * ratio;
     ctx.strokeStyle = color; ctx.lineWidth = 1.6;
     roundRect(ctx, x, y, w * CELL - 3, h * CELL - 3, 9); ctx.stroke();
