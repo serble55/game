@@ -191,8 +191,8 @@ canvas#cv{
        <b>เงาจาง ๆ</b> ในสนาม คือจุดที่กระสุนนัดนี้จะไปเกาะ — เล็งตามเงาได้เลย ไม่ต้องเดา<br>
        <b>วงกลมประ</b> ในก้อน คือช่องที่ยังขาด เติมครบเมื่อไหร่ระเบิดเมื่อนั้น<br>
        <b>เส้นประสีชมพู</b>พาดแถวไหน แปลว่าแถวนั้นไม่มีอะไรให้ชน ยิงไปก็เสียนัดเปล่า<br>
-       <b style="color:#ff3ea5">กรอบชมพูขีดประ</b> = มีบล็อกยื่นออกมาทำรูปทรงเสีย ยิงเพิ่มตอนนี้มีแต่เสียนัด<br>
-       บล็อกที่ยื่นออกมาจะจางแล้วร่วงไปเองใน 2 วินาที ผิดแล้วแก้ตัวได้ แต่เสียเวลา</p>
+       <b>ยิงยื่นออกมาแล้วกรอบจะโตขึ้นทันที</b> = โจทย์ใหม่ ต้องเติมให้เป็นสี่เหลี่ยมที่ใหญ่กว่าเดิม
+       ไม่มีอะไรมาลบให้ฟรี ๆ &mdash; แต่ก้อนใหญ่กว่าก็ได้คะแนนมากกว่า แก้เก่ง ๆ คือได้กำไร</p>
 
     <p><b style="color:#ff8a3d">ยิ่งเก็บก้อนใหญ่ยิ่งคุ้ม</b> — ก้อน 4×4 ก้อนเดียวได้คะแนนมากกว่า
        ก้อน 2×2 สี่ก้อนรวมกัน จะรีบเก็บหรือปล่อยให้โตก่อนก็คิดเอา<br>
@@ -246,7 +246,7 @@ canvas#cv{
 <p class="hint" id="uiHint">กระสุนยาว ๆ ยิงเข้าขั้นบันไดทีเดียวเติมได้หลายชั้น &mdash; ช่องที่ชนจะเกาะติด ส่วนช่องที่ยังโล่งบินต่อไปเอง<br>
 เคลียร์ได้ 1 ก้อน กำแพงจะถอยให้หายใจอีกนิด &middot; ก้อนใหญ่คะแนนดีกว่าก้อนเล็กแบบทวีคูณ &middot; ไม่มีนัดไหนเสียเลยได้โบนัส PERFECT<br>
 <b>ระเบิด</b> ล้าง 3&times;3 ตรงจุดที่ชน &middot; <b>เลเซอร์</b> ทะลุล้างทั้งแถว &mdash; ทั้งคู่ได้จากคอมโบ เก็บได้ทีละชิ้น<br>
-<b>ระเบิดเมื่อรูปทรงเป็นสี่เหลี่ยมทึบเท่านั้น</b> &mdash; บล็อกที่ยื่นออกมาทำให้ยังไม่ระเบิด และจะร่วงไปเองใน 2 วินาที</p>
+<b>ระเบิดเมื่อรูปทรงเป็นสี่เหลี่ยมทึบเท่านั้น</b> &mdash; ยิงยื่นออกมาแล้วต้องแก้เอง เติมให้เป็นสี่เหลี่ยมที่ใหญ่ขึ้น (คะแนนก็มากขึ้นตาม)</p>
 
 <script>
 (function(){
@@ -293,7 +293,6 @@ var BIG_BONUS = 0.10;    // ก้อนใหญ่ขึ้น 1 ช่อง 
 var ITEM_AT   = { BOMB: 3, LASER: 5 };   // คอมโบเท่านี้ได้ไอเทม (ถ้ามือว่าง)
 var WAVE_EVERY = 5;      // ทุกกี่เลเวลเจอเวฟใหญ่
 var LASER_MS  = 6;       // เลเซอร์วิ่งเร็วกว่ากระสุนปกติ
-var LOOSE_MS  = 2200;    // บล็อกที่ยิงไปเกาะนอกกรอบก้อน อยู่ได้เท่านี้แล้วจางหายไปเอง
 var DANGER_COLS = 4;     // เข้าใกล้เส้นแดงกี่ช่องถึงเริ่มเตือน
 
 // เคารพ prefers-reduced-motion: ปิดสั่นจอ ลดแฟลชและเศษระเบิด
@@ -514,9 +513,8 @@ function emptyGrid(){
   return g;
 }
 
-// blob = 0 คือบล็อกที่ผู้เล่นยิงเข้าไปเอง, > 0 คือรหัสก้อนที่ลอยเข้ามา
-// fade = เวลาที่เหลือก่อนจางหาย (นับเฉพาะตอนอยู่นอกกรอบก้อน)
-function newCell(color, blob){ return { color: color, blob: blob || 0, fade: LOOSE_MS }; }
+// blob = 0 คือบล็อกที่ผู้เล่นยิงเข้าไปเอง, > 0 คือรหัสก้อนที่ลอยเข้ามา (ใช้เลือกสีกรอบ)
+function newCell(color, blob){ return { color: color, blob: blob || 0 }; }
 
 function reset(){
   S.cells = emptyGrid();
@@ -890,93 +888,25 @@ function components(){
   return out;
 }
 
-/* กรอบเดิมของแต่ละก้อน — คิดจาก "ตัวตนของก้อน" ไม่ใช่กลุ่มที่ต่อกัน
-   บล็อกที่ยิงพลาดไปเกาะข้างนอกกรอบจึงไม่ทำให้ก้อนนั้นตายถาวรอีกต่อไป */
-function blobBoxes(){
-  var map = {}, r, c, cell, bx;
-  for (r = 0; r < ROWS; r++){
-    for (c = 0; c < COLS; c++){
-      cell = S.cells[r][c];
-      if (!cell || !cell.blob) continue;
-      bx = map[cell.blob];
-      if (!bx) map[cell.blob] = { r0:r, r1:r, c0:c, c1:c, n:1, color:cell.color };
-      else {
-        if (r < bx.r0) bx.r0 = r; if (r > bx.r1) bx.r1 = r;
-        if (c < bx.c0) bx.c0 = c; if (c > bx.c1) bx.c1 = c;
-        bx.n++;
-      }
-    }
-  }
-  return map;
-}
-
-var boxCache = null;
-var insideBuf = new Int32Array(ROWS * COLS), insideGen = 0;
-
-// ทำเครื่องหมายทุกช่องที่อยู่ในกรอบของก้อนใดก้อนหนึ่ง = ช่องที่ "มีความหมาย"
-function markInside(boxes){
-  insideGen++;
-  var id, bx, r, c;
-  for (id in boxes){
-    bx = boxes[id];
-    for (r = bx.r0; r <= bx.r1; r++)
-      for (c = bx.c0; c <= bx.c1; c++) insideBuf[r * COLS + c] = insideGen;
-  }
-}
-function insideBox(r, c){ return insideBuf[r * COLS + c] === insideGen; }
-
 var compCache = null;
-function refreshBoard(){
-  if (S.dirty || !boxCache){
-    boxCache = blobBoxes();
-    markInside(boxCache);
-    compCache = components();
-    S.dirty = false;
-  }
-}
-function boxesCached(){ refreshBoard(); return boxCache; }
-function compsCached(){ refreshBoard(); return compCache; }
-
-/* บล็อกที่ผู้เล่นยิงไปเกาะ "นอกกรอบก้อน" ไม่มีทางทำให้ก้อนไหนเต็มได้
-   ปล่อยไว้ก็เป็นขยะ — ให้จางลงแล้วหลุดไปเอง ผู้เล่นเห็นชัดว่านัดนั้นไม่เข้าเป้า
-   (ช่องที่อยู่ในกรอบคือความคืบหน้า อยู่ถาวรจนกว่าก้อนจะระเบิด) */
-function decayLoose(dt){
-  boxesCached();
-  var r, c, cell, changed = false;
-  for (r = 0; r < ROWS; r++){
-    for (c = 0; c < COLS; c++){
-      cell = S.cells[r][c];
-      if (!cell || cell.blob) continue;
-      if (insideBox(r, c)){ cell.fade = LOOSE_MS; continue; }
-      if (cell.fade == null) cell.fade = LOOSE_MS;
-      cell.fade -= dt;
-      if (cell.fade <= 0){
-        burst(c, r, cell.color);
-        S.cells[r][c] = null;
-        changed = true;
-      }
-    }
-  }
-  if (changed) S.dirty = true;
+function compsCached(){
+  if (S.dirty || !compCache){ compCache = components(); S.dirty = false; }
+  return compCache;
 }
 
-/* เศษก้อนที่โดนระเบิดจนเหลือแถวเดียวหรือคอลัมน์เดียว — เติมให้เต็มกรอบไม่ได้อีกแล้ว
-   ปล่อยไว้ก็ลอยไปชนเส้นแดงฟรี ๆ ให้ร่วงทิ้งไป
-   (บล็อกของผู้เล่นที่หลงทางมี decayLoose ดูแลอยู่แล้ว) */
+/* กลุ่มบล็อกที่สูงแค่แถวเดียวทำเป็นสี่เหลี่ยมไม่ได้ตลอดกาล — ยิงต่อได้แต่ทางซ้าย
+   ซึ่งก็ยังสูงแถวเดียวอยู่ดี เกิดจากโดนระเบิด/เลเซอร์เจียนเอา ปล่อยไว้ก็เป็นขยะ ให้ร่วงทิ้ง
+   ส่วนบล็อกที่ยื่นออกมาแต่กลุ่มยังสูง 2 แถวขึ้นไป ไม่แตะ — นั่นคือโจทย์ที่ต้องแก้เอง */
 function sweepDebris(){
-  var boxes = blobBoxes(), id, bx, r, c, cell, gone = 0, kill = {}, any = false;
-  for (id in boxes){
-    bx = boxes[id];
-    if (bx.c1 >= COLS - 1) continue;                       // ยังไหลเข้ามาไม่ครบ
-    if (bx.c1 - bx.c0 + 1 >= 2 && bx.r1 - bx.r0 + 1 >= 2) continue;
-    kill[id] = 1; any = true;
-  }
-  if (!any) return 0;
-  for (r = 0; r < ROWS; r++){
-    for (c = 0; c < COLS - 1; c++){
-      cell = S.cells[r][c];
-      if (!cell || !cell.blob || !kill[cell.blob]) continue;
-      burst(c, r, cell.color);
+  var comps = components(), gone = 0, i, j, cp, r, c;
+  for (i = 0; i < comps.length; i++){
+    cp = comps[i];
+    if (cp.r1 !== cp.r0) continue;
+    if (cp.c1 >= COLS - 1) continue;                 // ยังไหลเข้ามาไม่ครบ
+    for (j = 0; j < cp.cells.length; j++){
+      r = cp.cells[j][0]; c = cp.cells[j][1];
+      if (!S.cells[r][c]) continue;
+      burst(c, r, S.cells[r][c].color);
       S.cells[r][c] = null;
       gone++;
     }
@@ -994,7 +924,8 @@ function isSolidRect(comp){
 /* กติกาเดียว และเข้มงวด: กลุ่มบล็อกที่ต่อกันต้องเป็น "สี่เหลี่ยมทึบเป๊ะ ๆ" ถึงจะระเบิด
    มีบล็อกยื่นออกมานอกรูปทรงแม้ช่องเดียว = ยังไม่ใช่สี่เหลี่ยม = ไม่ระเบิด
    ยิงมั่วจึงไม่มีทางผ่าน ต้องเลือกกระสุน ท่าหมุน และแถวให้ลงพอดีจริง ๆ
-   (บล็อกที่ยื่นออกมาไม่ได้ค้างถาวร เดี๋ยวมันร่วงไปเอง — ดู decayLoose)
+   ยิงยื่นออกมาแล้วรูปทรงใหญ่ขึ้น = โจทย์ใหม่ที่ต้องเติมให้เป็นสี่เหลี่ยมที่ใหญ่กว่าเดิม
+   (ซึ่งได้คะแนนมากกว่าด้วย) ไม่มีอะไรมาลบให้ฟรี ๆ
    ก้อนที่ยังไหลเข้ามาไม่ครบ (ติดขอบขวา) ไม่นับ ไม่งั้นขอบก้อนที่โผล่มาแค่บางส่วน
    บังเอิญเป็นสี่เหลี่ยมพอดี แล้วระเบิดฟรีตั้งแต่ยังไม่ได้ยิง */
 function clearTargets(){
@@ -1310,9 +1241,9 @@ function drawLanding(slide, blocked){
   ctx.setLineDash([]);
 }
 
-/* กรอบช่วยเล็ง = กรอบของ "กลุ่มบล็อกที่ต่อกัน" ซึ่งคือสิ่งที่ต้องทำให้เป็นสี่เหลี่ยม
-   จุดไข่ปลา = ช่องที่ยังขาด · กรอบชมพูขีดประ = มีบล็อกยื่นออกมาทำรูปทรงเสีย
-   (รอให้มันร่วงก่อน ยิงเพิ่มตอนนี้มีแต่จะเสียนัด) */
+/* กรอบช่วยเล็ง = กรอบของ "กลุ่มบล็อกที่ต่อกัน" ซึ่งคือรูปทรงที่ต้องทำให้เป็นสี่เหลี่ยม
+   จุดไข่ปลา = ช่องที่ยังขาด · ยิงยื่นออกมาเมื่อไหร่กรอบจะโตขึ้นทันที
+   บอกตรง ๆ ว่าตอนนี้ติดหนี้กี่ช่อง ต้องเติมให้ครบถึงจะระเบิด */
 function drawTargets(slide){
   var comps = compsCached();
   var ox = -slide * CELL;
@@ -1322,32 +1253,18 @@ function drawTargets(slide){
     var h = cp.r1 - cp.r0 + 1, w = cp.c1 - cp.c0 + 1;
     if (h < 2 || w < 2) continue;
     var area = w * h;
-    if (area > 48) continue;
+    if (area > 120) continue;
     var ratio = cp.cells.length / area;
-    if (ratio < 0.45) continue;
 
-    var spoiled = false, color = null, j, r, c;
-    for (j = 0; j < cp.cells.length; j++){
-      r = cp.cells[j][0]; c = cp.cells[j][1];
-      var cell = S.cells[r][c];
-      if (!cell) continue;
-      if (cell.blob){ if (!color) color = cell.color; }
-      else if (!insideBox(r, c)) spoiled = true;      // บล็อกที่กำลังจาง = รูปทรงเสียอยู่
+    var color = null, j, r, c;
+    for (j = 0; j < cp.cells.length && !color; j++){
+      var cell = S.cells[cp.cells[j][0]][cp.cells[j][1]];
+      if (cell && cell.blob) color = cell.color;
     }
     if (!color) color = '#ffffff';
 
     var x = PAD + (GUN_W + cp.c0) * CELL + 1.5 + ox;
     var y = PAD + cp.r0 * CELL + 1.5;
-    if (spoiled){
-      ctx.globalAlpha = 0.85;
-      ctx.strokeStyle = '#ff3ea5'; ctx.lineWidth = 1.8;
-      ctx.setLineDash([5, 4]);
-      roundRect(ctx, x, y, w * CELL - 3, h * CELL - 3, 9); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.globalAlpha = 1;
-      continue;
-    }
-
     ctx.globalAlpha = 0.16 + 0.6 * ratio * ratio;
     ctx.strokeStyle = color; ctx.lineWidth = 1.6;
     roundRect(ctx, x, y, w * CELL - 3, h * CELL - 3, 9); ctx.stroke();
@@ -1407,11 +1324,7 @@ function draw(){
 
   for (r = 0; r < ROWS; r++){
     for (c = 0; c < COLS; c++){
-      var cl = S.cells[r][c];
-      if (!cl) continue;
-      // บล็อกที่หลงอยู่นอกกรอบก้อนจะจางลงเรื่อย ๆ จนหลุดไป
-      var a = (!cl.blob && cl.fade < LOOSE_MS) ? Math.max(0.18, cl.fade / LOOSE_MS) : 1;
-      drawBlock(c - slide, r, cl.color, a);
+      if (S.cells[r][c]) drawBlock(c - slide, r, S.cells[r][c].color);
     }
   }
   if (slide > 0){
@@ -1851,7 +1764,6 @@ function loop(now){
       S.shiftAcc -= S.stepMs;
       shiftWall();
     }
-    decayLoose(dt);
     // จังหวะหัวใจเต้นตอนก้อนใกล้เส้นแดง ยิ่งใกล้ยิ่งถี่
     if (S.heat >= 0.5 && now - S.warnAt > 900 - 500 * S.heat){
       S.warnAt = now;
