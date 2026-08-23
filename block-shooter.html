@@ -83,6 +83,7 @@ canvas#cv{
   background:rgba(5,6,16,.87);backdrop-filter:blur(4px);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:10px;padding:18px;text-align:center;
+  overflow-y:auto;overscroll-behavior:contain;
 }
 .overlay[hidden]{display:none}
 .overlay h2{
@@ -90,12 +91,32 @@ canvas#cv{
   font-size:clamp(17px,4.2vw,25px);letter-spacing:.1em;
   text-shadow:0 0 14px var(--cyan),0 0 34px rgba(155,92,255,.6);
 }
-.overlay p{margin:0;font-size:13px;color:var(--dim);line-height:1.85;max-width:52ch}
+.overlay p{margin:0;font-size:13px;color:var(--dim);line-height:1.85;max-width:min(62ch,100%)}
+.overlay .ctl{display:inline-block;white-space:nowrap;margin:0 3px}
+/* จอเตี้ย/แคบ: ย่อตัวอักษรให้คำอธิบายอยู่ในกรอบสนามได้ */
+/* จอแคบ: บีบแถบสถานะให้ไม่กินความสูงจอไปสองแถว */
+@media (max-width:560px){
+  .hud{gap:6px}
+  .stat{min-width:52px;padding:5px 7px}
+  .stat b{font-size:9px;letter-spacing:.08em}
+  .stat span{font-size:15px}
+  .stat.piece{padding:5px 8px}
+  .iconbtn{width:36px;font-size:15px}
+  .pad button{padding:13px 4px;font-size:13px}
+}
+@media (max-width:560px), (max-height:700px){
+  .overlay{gap:5px;padding:10px}
+  .overlay h2{font-size:16px}
+  .overlay p{font-size:11.5px;line-height:1.5}
+  .overlay p .k{min-width:18px;padding:0 4px;font-size:10.5px}
+  .play{padding:9px 22px;font-size:14px}
+}
 .overlay p .k{
   display:inline-block;min-width:22px;padding:1px 6px;margin:0 2px;
   border:1px solid var(--line);border-radius:6px;background:rgba(255,255,255,.06);
   color:#fff;font-size:11.5px;font-family:Orbitron,monospace;
 }
+.overlay p.stats{font-size:12px;color:#5f6a95;letter-spacing:.02em}
 .big{font-family:Orbitron,monospace;font-size:38px;font-weight:800;color:var(--lime);text-shadow:0 0 18px rgba(157,255,60,.7)}
 .play{
   margin-top:2px;padding:11px 26px;border-radius:999px;cursor:pointer;
@@ -133,7 +154,7 @@ canvas#cv{
 
 <div>
   <h1 class="title">BLOCK SHOOTER</h1>
-  <p class="subtitle" id="uiSubtitle">ก้อนกว้าง 4 ช่องลอยมาแบบแหว่ง ๆ — ยิงเติมให้กลายเป็นสี่เหลี่ยมทึบ</p>
+  <p class="subtitle" id="uiSubtitle">ก้อนแหว่ง ๆ ลอยเข้ามาไม่หยุด — ยิงเติมให้เต็มเป็นสี่เหลี่ยม แล้วมันจะระเบิด</p>
 </div>
 
 <div class="hud">
@@ -152,21 +173,21 @@ canvas#cv{
 
   <div class="overlay" id="ovStart">
     <h2>พร้อมยิงหรือยัง?</h2>
-    <p>
-      <span class="k">&uarr;</span><span class="k">&darr;</span> เลื่อนฐานปืน &nbsp;&middot;&nbsp;
-      <span class="k">Space</span> ยิง &nbsp;&middot;&nbsp;
-      <span class="k">Z</span> หมุนถอย <span class="k">X</span> หมุนหน้า &nbsp;&middot;&nbsp;
-      <span class="k">C</span> ทิ้งกระสุน<br>
-      <span class="k">P</span> พอส &nbsp;&middot;&nbsp; <span class="k">R</span> เริ่มใหม่ (กด 2 ครั้งตอนเล่นอยู่)<br>
-      <b style="color:#9dff3c">คลิกหรือแตะบนสนาม</b> เพื่อย้ายฐานปืนไปแถวนั้นทันที
-    </p>
-    <p>ก้อนบล็อกกว้าง 4 ช่อง ลอยมาจากขวา ขอบขวาเรียบแต่ขอบซ้ายแหว่งเป็นขั้นบันได<br>
-       ยิงเติมรอยแหว่งให้ครบทุกช่อง ก้อนจะกลายเป็นสี่เหลี่ยมทึบแล้วระเบิดทิ้ง<br>
-       <b style="color:#22e3ff">เงาจาง ๆ ในสนามคือจุดที่กระสุนนัดนี้จะไปเกาะ</b> &mdash; เล็งจากเงานั้นได้เลย<br>
-       ก้อนที่ใกล้เต็มจะขึ้นกรอบ พร้อมจุดประไข่ปลาบอกช่องที่ยังขาด<br>
-       กระสุนสุ่มมาเป็นชุด ครบ 6 แบบแล้ววนใหม่ &middot; ยิงพลาดกระสุนจะไหลออกนอกสนามหายไป<br>
-       ยิงพร้อมกันได้ 6 นัด (คนละแถว) &middot; เคลียร์ได้ 1 ครั้ง = ถ่วงกำแพงให้อีก 1 ช่อง<br>
-       <b style="color:#9dff3c">เคลียร์โดยไม่มีกระสุนตกหล่นเลย = โบนัส PERFECT</b></p>
+    <p><b style="color:#9dff3c">สิ่งที่ต้องทำ</b> — ก้อนสี่เหลี่ยมแหว่ง ๆ ลอยเข้ามาจากขวาไม่หยุด
+       ยิงกระสุนเติมรอยแหว่งให้เต็มเป็นสี่เหลี่ยม แล้วก้อนนั้นจะระเบิดหายไป<br>
+       ปล่อยให้มันไหลมาถึง<b style="color:#ff3ea5">เส้นแดง</b>ทางซ้ายเมื่อไหร่ = จบเกม</p>
+
+    <p><b style="color:#22e3ff">เกมบอกใบ้ให้หมดแล้ว</b><br>
+       <b>เงาจาง ๆ</b> ในสนาม คือจุดที่กระสุนนัดนี้จะไปเกาะ — เล็งตามเงาได้เลย ไม่ต้องเดา<br>
+       <b>วงกลมประ</b> ในก้อน คือช่องที่ยังขาด เติมครบเมื่อไหร่ระเบิดเมื่อนั้น<br>
+       <b>เส้นประสีชมพู</b>พาดแถวไหน แปลว่าแถวนั้นไม่มีอะไรให้ชน ยิงไปก็เสียนัดเปล่า</p>
+
+    <p><span class="ctl"><span class="k">&uarr;</span><span class="k">&darr;</span> เลื่อนปืน</span>&middot;<span
+       class="ctl"><span class="k">Space</span> ยิง</span>&middot;<span
+       class="ctl"><span class="k">Z</span><span class="k">X</span> หมุนกระสุน</span>&middot;<span
+       class="ctl"><span class="k">C</span> ทิ้งนัดที่ยัดไม่ลง</span>&middot;<span
+       class="ctl"><span class="k">P</span> พอส</span><br>
+       <b style="color:#9dff3c">แตะหรือคลิกบนสนาม</b> เพื่อย้ายปืนไปแถวนั้นทันที</p>
     <button class="play" id="btnStart">เริ่มเกม</button>
   </div>
 
@@ -180,7 +201,8 @@ canvas#cv{
   <div class="overlay" id="ovOver" hidden>
     <h2>จบเกม</h2>
     <div class="big" id="uiFinal">0</div>
-    <p id="uiOverMsg">บล็อกชนขอบซ้ายแล้ว</p>
+    <p id="uiOverMsg">ก้อนทะลุเส้นแดงแล้ว</p>
+    <p class="stats" id="uiOverStats"></p>
     <button class="play" id="btnAgain">เล่นอีกครั้ง</button>
   </div>
 </div>
@@ -193,7 +215,8 @@ canvas#cv{
   <button id="btnSkip" aria-label="ทิ้งกระสุน"><span class="g">&#10005;</span>ทิ้ง</button>
 </div>
 
-<p class="hint" id="uiHint">แท่งตั้งยิงเข้าขั้นบันไดนัดเดียว เติมได้หลายระดับความลึกพร้อมกัน &mdash; รอยแหว่งอยู่ด้านซ้ายของก้อนเสมอ กระสุนจึงเข้าถึงได้ทุกช่อง &mdash; แต่ถ้ามีก้อนอื่นขวางอยู่ข้างหน้าในแถวเดียวกัน ต้องเก็บก้อนหน้าให้เสร็จก่อน</p>
+<p class="hint" id="uiHint">กระสุนยาว ๆ ยิงเข้าขั้นบันไดทีเดียวเติมได้หลายชั้น &mdash; ช่องที่ชนจะเกาะติด ส่วนช่องที่ยังโล่งบินต่อไปเอง<br>
+เคลียร์ได้ 1 ก้อน กำแพงจะถอยให้หายใจอีกนิด &middot; เคลียร์ติด ๆ กันได้ตัวคูณคะแนน &middot; ไม่มีนัดไหนเสียเลยได้โบนัส PERFECT</p>
 
 <script>
 (function(){
@@ -225,6 +248,11 @@ var LEVEL_PTS = 600;
 var MAX_BLOBS = 2;       // ก้อนต่อ 1 แถบ ที่เลเวล 1 — เพิ่มตามเลเวล
 var HARD_BLOBS = 4;      // เพดานก้อนต่อแถบ
 var MIN_GAPW  = 4;       // ช่องว่างระหว่างแถบแคบสุด
+var STREAK_MS = 4000;    // เคลียร์ครั้งถัดไปภายในเวลานี้ = ต่อคอมโบ
+var DANGER_COLS = 4;     // เข้าใกล้เส้นแดงกี่ช่องถึงเริ่มเตือน
+
+// เคารพ prefers-reduced-motion: ปิดสั่นจอ ลดแฟลชและเศษระเบิด
+var REDUCE = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
 var PALETTE = ['#22e3ff', '#ff3ea5', '#9dff3c', '#9b5cff', '#00ffc8', '#ffd23f'];
 
@@ -270,8 +298,12 @@ var S = {
   particles: [],
   shake: 0, flash: 0,
   soundOn: true,
-  lastCombo: 0, comboAt: 0, lastBonus: 0,
+  lastBonus: 0,
+  streak: 0, streakAt: -99999,
   skipCd: 0,
+  floaters: [],                                    // ตัวเลขคะแนนลอยขึ้นตรงจุดที่ระเบิด
+  stats: { shots:0, hits:0, clears:0, perfects:0 },
+  heat: 0, warnAt: 0,
   waste: 0,           // กระสุนที่หลุดออกนอกสนาม/ทิ้งไป นับตั้งแต่เคลียร์ครั้งล่าสุด
   dirty: true,        // สนามเปลี่ยน → คำนวณก้อนใหม่
   comps: null,
@@ -282,7 +314,7 @@ function el(id){ return document.getElementById(id); }
 var ui = {
   score: el('uiScore'), level: el('uiLevel'), high: el('uiHigh'),
   ammoText: el('uiAmmoText'),
-  final: el('uiFinal'), overMsg: el('uiOverMsg'),
+  final: el('uiFinal'), overMsg: el('uiOverMsg'), overStats: el('uiOverStats'),
   ovStart: el('ovStart'), ovPause: el('ovPause'), ovOver: el('ovOver'),
   pvCur: el('pvCur'), pvNext: el('pvNext'), cdBar: el('cdBar')
 };
@@ -390,6 +422,12 @@ function nextCol(){
   return S.queue.shift();
 }
 
+// คอลัมน์ถัดไปที่กำลังจะไหลเข้า — ใช้วาดให้มันโผล่มาจากขอบขวาระหว่างที่กำแพงเลื่อน
+function peekCol(){
+  if (!S.queue.length) S.queue = makeFormation();
+  return S.queue[0];
+}
+
 /* ==========================================================
    สร้าง / รีเซ็ตสนาม
    ========================================================== */
@@ -427,8 +465,12 @@ function reset(){
   S.particles = [];
   S.shake = 0;
   S.flash = 0;
-  S.lastCombo = 0;
   S.lastBonus = 0;
+  S.streak = 0;
+  S.streakAt = -99999;
+  S.floaters = [];
+  S.stats = { shots:0, hits:0, clears:0, perfects:0 };
+  S.heat = 0;
   S.skipCd = 0;
   S.waste = 0;
   S.toast = '';
@@ -452,17 +494,23 @@ function shiftWall(){
   }
   S.dirty = true;
 
-  // กระสุนบินอยู่ในพิกัดจอ ถ้าก้อนเลื่อนมาทับ ให้ถอยไปเชื่อมที่ช่องว่างใกล้สุด
+  /* กระสุนบินอยู่ในพิกัดจอ ถ้าก้อนเลื่อนมาทับ ให้ถอยไปช่องว่างใกล้สุด
+     แล้ว "แตกตัว" แบบเดียวกับตอนบินปกติ — ช่องที่ชนเกาะ ช่องที่ยังโปร่งบินต่อ
+     (เดิมหยุดทั้งนัด กติกาไม่ตรงกัน เลยได้ก้อนปูดที่เติมยาก) */
   var keep = [];
   for (var i = 0; i < S.bullets.length; i++){
     var b = S.bullets[i];
     if (!b.cells.length) continue;
-    if (canPlace(b.cells, b.row, b.col)){ keep.push(b); continue; }
-    var span = 0;
-    for (var j = 0; j < b.cells.length; j++) if (b.cells[j][1] + 1 > span) span = b.cells[j][1] + 1;
-    var cc = b.col, minCol = -span;
-    while (cc > minCol && !canPlace(b.cells, b.row, cc)) cc--;
-    if (cc > minCol){ b.col = cc; weld(b); }
+    if (!canPlace(b.cells, b.row, b.col)){
+      var span = 0;
+      for (var j = 0; j < b.cells.length; j++) if (b.cells[j][1] + 1 > span) span = b.cells[j][1] + 1;
+      var cc = b.col, minCol = -span;
+      while (cc > minCol && !canPlace(b.cells, b.row, cc)) cc--;
+      if (cc <= minCol){ S.waste += b.cells.length; continue; }   // ถูกบี้ตกขอบซ้ายทั้งนัด
+      b.col = cc;
+      if (settle(b)) resolve();
+    }
+    if (b.cells.length) keep.push(b);
   }
   S.bullets = keep;
 }
@@ -515,12 +563,39 @@ function fire(){
   S.bullets.push({
     cells: cells, w: w,
     row: row,
-    col: -w, acc: 0, color: p.color
+    col: -w, acc: 0, color: p.color, hit: false
   });
+  S.stats.shots++;
   S.cur = { piece: S.next.piece, rot: 0 };
   S.next = { piece: randPiece() };
   syncHud();
   beep(760, 0.05, 'square', 0.05);
+}
+
+function markHit(b){ if (!b.hit){ b.hit = true; S.stats.hits++; } }
+
+/* ช่องไหนของกระสุนที่ "ช่องถัดไป" มีของอยู่แล้ว ให้เกาะติดตรงตำแหน่งปัจจุบัน
+   แล้ววนซ้ำ เพราะช่องที่เพิ่งเกาะอาจไปบล็อกช่องอื่นในนัดเดียวกันต่อ
+   ที่เหลือยังโปร่ง = ยังบินต่อได้ คืนจำนวนช่องที่เกาะ */
+function settle(b){
+  var placed = 0, changed = true, i;
+  while (changed){
+    changed = false;
+    var keep = [];
+    for (i = 0; i < b.cells.length; i++){
+      var r = b.row + b.cells[i][0];
+      var c = b.col + b.cells[i][1] + 1;
+      if (c >= 0 && c < COLS && S.cells[r][c]){
+        var wc = b.col + b.cells[i][1];
+        if (wc >= 0 && wc < COLS && !S.cells[r][wc]){ S.cells[r][wc] = { color: b.color }; placed++; }
+        else if (wc < 0){ S.waste++; }
+        changed = true;
+      } else keep.push(b.cells[i]);
+    }
+    b.cells = keep;
+  }
+  if (placed){ S.dirty = true; markHit(b); beep(300, 0.05, 'triangle', 0.05); }
+  return placed;
 }
 
 function weld(b){
@@ -535,13 +610,13 @@ function weld(b){
     } else lost++;
   }
   if (lost){ S.waste += lost; beep(150, 0.08, 'sine', 0.045); }   // บล็อกที่โดนบี้ตกขอบซ้าย
-  if (placed){ S.dirty = true; beep(300, 0.05, 'triangle', 0.05); resolve(); }
+  if (placed){ S.dirty = true; markHit(b); beep(300, 0.05, 'triangle', 0.05); resolve(); }
 }
 
 // เดินหน้า 1 ช่อง — ช่องที่ชนให้เกาะติดที่เดิม ช่องที่ยังโปร่งไหลต่อไปเอง
 // (แท่งตั้งยิงเข้าขั้นบันไดนัดเดียว จึงเติมได้หลายระดับความลึก)
 function advanceBullet(b){
-  var i, r, c, gone = 0, placed = 0;
+  var i, gone = 0, placed = 0;
 
   // 1) ช่องที่ก้าวต่อไปจะเลยขอบขวา = ยิงพลาด ไหลออกนอกสนาม หายไปเลย
   var rest = [];
@@ -551,29 +626,14 @@ function advanceBullet(b){
   }
   b.cells = rest;
 
-  // 2) ช่องที่ชนของเดิมให้เกาะติดที่ตำแหน่งปัจจุบัน — แล้ววนซ้ำ
-  //    เพราะช่องที่เพิ่งเกาะ อาจไปบล็อกช่องอื่นในกระสุนนัดเดียวกันต่อ
-  var changed = true;
-  while (changed){
-    changed = false;
-    var keep = [];
-    for (i = 0; i < b.cells.length; i++){
-      r = b.row + b.cells[i][0];
-      c = b.col + b.cells[i][1] + 1;
-      if (c >= 0 && S.cells[r][c]){
-        var wc = b.col + b.cells[i][1];
-        if (wc >= 0 && wc < COLS && !S.cells[r][wc]){ S.cells[r][wc] = { color: b.color }; placed++; }
-        changed = true;
-      } else keep.push(b.cells[i]);
-    }
-    b.cells = keep;
-  }
+  // 2) ช่องที่ชนของเดิมให้เกาะติดที่ตำแหน่งปัจจุบัน
+  placed = settle(b);
 
   // 3) ที่เหลือยังโปร่ง ไหลต่ออีก 1 ช่อง
   if (b.cells.length) b.col++;
 
   if (gone){ S.waste += gone; beep(170, 0.09, 'sine', 0.035); }
-  if (placed){ S.dirty = true; beep(300, 0.05, 'triangle', 0.05); resolve(); }
+  if (placed) resolve();
 }
 
 function stepBullets(dt){
@@ -701,19 +761,28 @@ function resolve(){
     }
     S.dirty = true;
 
-    var gained = count * 10 * chain;
+    /* คอมโบ = เคลียร์ติด ๆ กัน ไม่ใช่ chain ในลูปนี้
+       (chain ≥ 2 เกิดไม่ได้: ก้อนที่ทึบถูกลบทั้งก้อน ก้อนอื่นไม่ถูกแตะเลย
+        ลูปจึงจบที่รอบแรกเสมอ ตัวคูณเดิมเลยเท่ากับ 1 ตลอดและ COMBO ไม่เคยขึ้น) */
+    var now = performance.now();
+    S.streak = (now - S.streakAt < STREAK_MS) ? S.streak + 1 : 1;
+    S.streakAt = now;
+    var mult = S.streak;
+
+    var gained = count * 10 * mult;
     // โบนัสแม่นยำ: ไม่มีกระสุนหลุดออกนอกสนามเลยตั้งแต่เคลียร์ครั้งก่อน
-    var bonus = (S.waste === 0) ? count * 5 * chain : 0;
+    var bonus = (S.waste === 0) ? count * 5 * mult : 0;
     S.score += gained + bonus;
     S.lastBonus = bonus;
     S.waste = 0;
+    S.stats.clears += hit.length;
+    if (bonus) S.stats.perfects++;
+    floatScore(hit, gained + bonus, bonus > 0);
     // รางวัล: เคลียร์ได้ = ถ่วงกำแพงให้อีก 1 ช่อง เล่นเก่งยิ่งยืดเกมได้เอง
     S.shiftAcc = Math.max(-S.stepMs * 2, S.shiftAcc - S.stepMs);
-    S.shake = Math.min(18, 6 + maxArea);
-    S.flash = 1;
-    S.lastCombo = chain;
-    S.comboAt = performance.now();
-    beep(520 + chain * 140, 0.12, 'sawtooth', 0.07);
+    S.shake = REDUCE ? 0 : Math.min(18, 6 + maxArea);
+    S.flash = REDUCE ? 0.35 : 1;
+    beep(520 + Math.min(mult, 6) * 140, 0.12, 'sawtooth', 0.07);
     if (bonus) beep(1320, 0.1, 'triangle', 0.05);
 
     var lv = 1 + Math.floor(S.score / LEVEL_PTS);
@@ -729,11 +798,25 @@ function resolve(){
 function burst(c, r, color){
   var x = PAD + (GUN_W + c) * CELL + CELL / 2;
   var y = PAD + r * CELL + CELL / 2;
-  for (var i = 0; i < 8; i++){
+  for (var i = 0, n = REDUCE ? 3 : 8; i < n; i++){
     var a = Math.random() * Math.PI * 2;
     var sp = 0.05 + Math.random() * 0.24;
     S.particles.push({ x:x, y:y, vx:Math.cos(a) * sp, vy:Math.sin(a) * sp, life:1, color:color });
   }
+}
+
+// เลขคะแนนลอยขึ้นตรงกลางก้อนที่เพิ่งระเบิด — เห็นทันทีว่านัดนั้นได้เท่าไหร่
+function floatScore(hits, amount, perfect){
+  var r0 = 0, c0 = 0, k = 0, i, j;
+  for (i = 0; i < hits.length; i++){
+    for (j = 0; j < hits[i].cells.length; j++){ r0 += hits[i].cells[j][0]; c0 += hits[i].cells[j][1]; k++; }
+  }
+  if (!k) return;
+  S.floaters.push({
+    x: PAD + (GUN_W + c0 / k) * CELL + CELL / 2,
+    y: PAD + (r0 / k) * CELL + CELL / 2,
+    text: '+' + amount, perfect: perfect, life: 1
+  });
 }
 
 function stepFx(dt){
@@ -744,6 +827,16 @@ function stepFx(dt){
     if (p.life > 0) alive.push(p);
   }
   S.particles = alive;
+
+  var fl = [];
+  for (i = 0; i < S.floaters.length; i++){
+    var f = S.floaters[i];
+    f.y -= dt * 0.028;
+    f.life -= dt / 1000;
+    if (f.life > 0) fl.push(f);
+  }
+  S.floaters = fl;
+
   if (S.shake > 0) S.shake = Math.max(0, S.shake - dt * 0.035);
   if (S.flash > 0) S.flash = Math.max(0, S.flash - dt / 260);
 }
@@ -847,51 +940,69 @@ function blitCell(c, r, color, alpha, solid){
 }
 function drawBlock(c, r, color, alpha){ blitCell(c, r, color, alpha, false); }
 
-// ฐานปืน: แท่งสูงริมซ้าย เลื่อนขึ้นลงได้ มีกระสุนเสียบอยู่ที่ปลาย
-function drawGun(){
-  var cy = PAD + S.gunRow * CELL + CELL / 2;
+/* ฐานปืน: แท่งริมซ้าย ความสูงเท่ากับ "ช่วงแถวที่นัดนี้จะออกจริง"
+   กระสุนแท่งตั้งตอนจ่ออยู่ล่างสุดจะถูกดันขึ้น (anchorRow) — แท่งปืนจึงบอกแทนว่าออกแถวไหนบ้าง */
+function drawGun(blocked){
+  var arow = S.cur ? anchorRow(S.cur.piece, S.cur.rot) : S.gunRow;
+  var ah   = S.cur ? pieceH(S.cur.piece, S.cur.rot) : 1;
+  var span = Math.max(ah, 1.2) * CELL;
+  var mid  = PAD + (arow + ah / 2) * CELL;
   var bw = Math.max(6, CELL - 20);
-  var bh = CELL * 2.2;
   var bx = PAD + 5;
-  var by = Math.max(PAD + 2, Math.min(PAD + ROWS * CELL - bh - 2, cy - bh / 2));
+  var by = Math.max(PAD + 2, Math.min(PAD + ROWS * CELL - span - 2, mid - span / 2));
+  var tint = blocked ? '#ff3ea5' : '#22e3ff';
 
-  ctx.shadowColor = '#22e3ff'; ctx.shadowBlur = 16;
-  ctx.fillStyle = 'rgba(34,227,255,.85)';
-  roundRect(ctx, bx, by, bw, bh, 5); ctx.fill();
+  ctx.shadowColor = tint; ctx.shadowBlur = 16;
+  ctx.fillStyle = blocked ? 'rgba(255,62,165,.8)' : 'rgba(34,227,255,.85)';
+  roundRect(ctx, bx, by, bw, span, 5); ctx.fill();
   ctx.shadowBlur = 0;
 
-  // ปลายลำกล้อง ชี้ไปแถวที่จะยิง
-  ctx.shadowColor = '#22e3ff'; ctx.shadowBlur = 14;
-  ctx.fillStyle = '#9dff3c';
+  // ปลายลำกล้อง — แดงเมื่อแถวนี้ยังมีนัดเก่าค้างอยู่ ยิงซ้ำไม่ได้
+  var cy = PAD + S.gunRow * CELL + CELL / 2;
+  cy = Math.max(by + 7, Math.min(by + span - 7, cy));
+  ctx.shadowColor = tint; ctx.shadowBlur = 14;
+  ctx.fillStyle = blocked ? '#ff3ea5' : '#9dff3c';
   roundRect(ctx, bx + bw, cy - 7, 13, 14, 3); ctx.fill();
   ctx.shadowBlur = 0;
 
   // ghost ของกระสุนที่ถืออยู่ ตรงช่องแรกที่จะเข้า
   if (S.cur){
     var cells = pieceCells(S.cur.piece, S.cur.rot);
-    var row = anchorRow(S.cur.piece, S.cur.rot);
     for (var i = 0; i < cells.length; i++){
-      var rr = row + cells[i][0], cc = cells[i][1];
+      var rr = arow + cells[i][0], cc = cells[i][1];
       if (rr >= 0 && rr < ROWS && cc < COLS) drawBlock(cc, rr, S.cur.piece.color, 0.18);
     }
   }
 }
 
 // เงาปลายทาง: ช่องที่กระสุนนัดนี้จะไปเกาะจริง ๆ
-function drawLanding(){
+function drawLanding(slide, blocked){
   if (!S.cur || S.phase !== 'play') return;
   var cells = pieceCells(S.cur.piece, S.cur.rot);
   var row = anchorRow(S.cur.piece, S.cur.rot);
-  if (laneBusy(cells, row)) return;              // ยิงไม่ได้อยู่แล้ว ไม่ต้องหลอกตา
+  var mine = rowsOf(cells, row);
+  var ox = -slide * CELL;
+  var key, r, c, x, y, i;
+
+  // มีนัดเก่าค้างอยู่ในแถวเดียวกัน = กดยิงแล้วไม่ออก ต้องเห็นว่าทำไม
+  if (blocked){
+    ctx.fillStyle = 'rgba(255,62,165,.09)';
+    for (key in mine){
+      r = +key;
+      ctx.fillRect(PAD + GUN_W * CELL, PAD + r * CELL, COLS * CELL, CELL);
+    }
+    return;
+  }
+
   var spots = simulateShot(cells, row);
   var color = S.cur.piece.color;
-  var pulse = 0.24 + 0.1 * Math.sin(performance.now() / 260);
-  var lands = {}, i, r, c, x, y;
+  var pulse = REDUCE ? 0.3 : (0.24 + 0.1 * Math.sin(performance.now() / 260));
+  var lands = {};
   for (i = 0; i < spots.length; i++){
     r = spots[i][0]; c = spots[i][1];
     lands[r] = true;
-    drawBlock(c, r, color, pulse);
-    x = PAD + (GUN_W + c) * CELL + 3;
+    drawBlock(c - slide, r, color, pulse);
+    x = PAD + (GUN_W + c) * CELL + 3 + ox;
     y = PAD + r * CELL + 3;
     ctx.globalAlpha = 0.75;
     ctx.strokeStyle = color; ctx.lineWidth = 1.6;
@@ -902,10 +1013,9 @@ function drawLanding(){
   }
 
   // แถวไหนไม่มีอะไรให้ชน = นัดนั้นไหลออกนอกสนามทิ้งเปล่า ขีดเส้นเตือนไว้ก่อนกดยิง
-  var mine = rowsOf(cells, row);
   ctx.strokeStyle = 'rgba(255,62,165,.4)'; ctx.lineWidth = 1.4;
   ctx.setLineDash([2, 6]);
-  for (var key in mine){
+  for (key in mine){
     r = +key;
     if (lands[r]) continue;
     y = PAD + r * CELL + CELL / 2;
@@ -918,8 +1028,9 @@ function drawLanding(){
 }
 
 // กรอบก้อนที่ใกล้เต็ม + จุดไข่ปลาตรงช่องที่ยังขาด — บอกว่า "อีกกี่ช่องจะระเบิด"
-function drawTargets(){
+function drawTargets(slide){
   var comps = compsCached();
+  var ox = -slide * CELL;
   for (var i = 0; i < comps.length; i++){
     var cp = comps[i];
     var h = cp.r1 - cp.r0 + 1, w = cp.c1 - cp.c0 + 1;
@@ -931,7 +1042,7 @@ function drawTargets(){
     var color = S.cells[cp.cells[0][0]][cp.cells[0][1]];
     color = color ? color.color : '#ffffff';
 
-    var x = PAD + (GUN_W + cp.c0) * CELL + 1.5;
+    var x = PAD + (GUN_W + cp.c0) * CELL + 1.5 + ox;
     var y = PAD + cp.r0 * CELL + 1.5;
     ctx.globalAlpha = 0.16 + 0.6 * ratio * ratio;
     ctx.strokeStyle = color; ctx.lineWidth = 1.6;
@@ -940,7 +1051,7 @@ function drawTargets(){
     for (var r = cp.r0; r <= cp.r1; r++){
       for (var c = cp.c0; c <= cp.c1; c++){
         if (S.cells[r][c]) continue;
-        var mx = PAD + (GUN_W + c) * CELL + CELL / 2;
+        var mx = PAD + (GUN_W + c) * CELL + CELL / 2 + ox;
         var my = PAD + r * CELL + CELL / 2;
         ctx.globalAlpha = 0.3;
         ctx.setLineDash([3, 3]);
@@ -953,38 +1064,81 @@ function drawTargets(){
 }
 
 function draw(){
-  var r, c, i;
+  var r, c, i, x, y;
+  var now = performance.now();
   ctx.clearRect(0, 0, W, H);
   ctx.save();
   if (S.shake > 0) ctx.translate((Math.random() - 0.5) * S.shake, (Math.random() - 0.5) * S.shake);
 
+  /* กำแพงไม่วาร์ปทีละช่องแล้ว — ทุกอย่างในสนามวาดเยื้องซ้ายตามเศษเวลาที่ค้างอยู่
+     ช่วงถ่วงเวลาหลังเคลียร์ (shiftAcc ติดลบ) ให้ค้างนิ่งไว้ ไม่ต้องถอยหลัง */
+  var slide = S.stepMs > 0 ? S.shiftAcc / S.stepMs : 0;
+  if (!(slide > 0)) slide = 0; else if (slide > 1) slide = 1;
+
+  var px = PAD + GUN_W * CELL;          // ขอบซ้ายของสนาม
+  var pw = COLS * CELL, ph = ROWS * CELL;
+
   ctx.strokeStyle = 'rgba(120,150,255,.09)'; ctx.lineWidth = 1;
   for (c = 0; c <= COLS; c++){
-    var gx = PAD + (GUN_W + c) * CELL;
-    ctx.beginPath(); ctx.moveTo(gx, PAD); ctx.lineTo(gx, PAD + ROWS * CELL); ctx.stroke();
+    x = PAD + (GUN_W + c) * CELL;
+    ctx.beginPath(); ctx.moveTo(x, PAD); ctx.lineTo(x, PAD + ph); ctx.stroke();
   }
   for (r = 0; r <= ROWS; r++){
-    var gy = PAD + r * CELL;
-    ctx.beginPath(); ctx.moveTo(PAD, gy); ctx.lineTo(PAD + (COLS + GUN_W) * CELL, gy); ctx.stroke();
+    y = PAD + r * CELL;
+    ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(PAD + (COLS + GUN_W) * CELL, y); ctx.stroke();
   }
 
-  var danger = false;
-  for (r = 0; r < ROWS; r++) if (S.cells[r][0] || S.cells[r][1]) { danger = true; break; }
-  var dx = PAD + GUN_W * CELL;
-  ctx.strokeStyle = danger ? 'rgba(255,62,165,.95)' : 'rgba(255,62,165,.28)';
-  ctx.lineWidth = danger ? 3 : 2;
-  ctx.shadowColor = '#ff3ea5'; ctx.shadowBlur = danger ? 22 : 8;
-  ctx.beginPath(); ctx.moveTo(dx, PAD); ctx.lineTo(dx, PAD + ROWS * CELL); ctx.stroke();
-  ctx.shadowBlur = 0;
+  // ใกล้เส้นแดงแค่ไหน → ไล่ระดับความเตือน ไม่ใช่รอจนเหลือก้าวเดียวค่อยแดง
+  var nearest = COLS;
+  for (r = 0; r < ROWS; r++){
+    for (c = 0; c < nearest; c++) if (S.cells[r][c]) { nearest = c; break; }
+  }
+  var heat = Math.max(0, Math.min(1, 1 - (nearest - slide) / DANGER_COLS));
+  S.heat = (S.phase === 'play') ? heat : 0;
+  var beat = REDUCE ? 1 : 0.72 + 0.28 * Math.sin(now / (150 + 260 * (1 - heat)));
+
+  // สนามทั้งหมด (บล็อก + คอลัมน์ที่กำลังไหลเข้า + กรอบช่วยเล็ง) เลื่อนพร้อมกันในกรอบนี้
+  ctx.save();
+  ctx.beginPath(); ctx.rect(px, PAD, pw, ph); ctx.clip();
 
   for (r = 0; r < ROWS; r++){
     for (c = 0; c < COLS; c++){
-      if (S.cells[r][c]) drawBlock(c, r, S.cells[r][c].color);
+      if (S.cells[r][c]) drawBlock(c - slide, r, S.cells[r][c].color);
     }
   }
+  if (slide > 0){
+    var inc = peekCol();
+    for (r = 0; r < ROWS; r++) if (inc[r]) drawBlock(COLS - slide, r, PALETTE[inc[r] - 1]);
+  }
 
-  drawTargets();
-  drawLanding();
+  drawTargets(slide);
+  var blocked = false;
+  if (S.cur && S.phase === 'play'){
+    var cc0 = pieceCells(S.cur.piece, S.cur.rot);
+    blocked = laneBusy(cc0, anchorRow(S.cur.piece, S.cur.rot));
+  }
+  drawLanding(slide, blocked);
+  ctx.restore();
+
+  // เส้นแดง + แสงเรืองด้านซ้าย เข้มขึ้นตามระยะ
+  if (heat > 0){
+    var vg = ctx.createLinearGradient(px, 0, px + CELL * DANGER_COLS, 0);
+    vg.addColorStop(0, 'rgba(255,62,165,' + (0.22 * heat * beat).toFixed(3) + ')');
+    vg.addColorStop(1, 'rgba(255,62,165,0)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(px, PAD, CELL * DANGER_COLS, ph);
+  }
+  ctx.strokeStyle = 'rgba(255,62,165,' + (0.28 + 0.67 * heat * beat).toFixed(3) + ')';
+  ctx.lineWidth = 2 + 2 * heat;
+  ctx.shadowColor = '#ff3ea5'; ctx.shadowBlur = 8 + 22 * heat;
+  ctx.beginPath(); ctx.moveTo(px, PAD); ctx.lineTo(px, PAD + ph); ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // แถบนับถอยหลังก่อนกำแพงขยับอีกช่อง
+  ctx.fillStyle = 'rgba(120,150,255,.14)';
+  ctx.fillRect(px, 4, pw, 3);
+  ctx.fillStyle = heat > 0.5 ? 'rgba(255,62,165,.85)' : 'rgba(34,227,255,.7)';
+  ctx.fillRect(px, 4, pw * slide, 3);
 
   for (var k = 0; k < S.bullets.length; k++){
     var b = S.bullets[k];
@@ -996,7 +1150,7 @@ function draw(){
     }
   }
 
-  drawGun();
+  drawGun(blocked);
 
   for (i = 0; i < S.particles.length; i++){
     var p = S.particles[i];
@@ -1006,32 +1160,49 @@ function draw(){
   }
   ctx.globalAlpha = 1; ctx.shadowBlur = 0;
 
+  // คะแนนลอยขึ้นตรงจุดที่ระเบิด
+  ctx.textAlign = 'center';
+  for (i = 0; i < S.floaters.length; i++){
+    var f = S.floaters[i];
+    ctx.globalAlpha = Math.max(0, Math.min(1, f.life * 1.6));
+    ctx.font = '800 ' + (f.perfect ? 20 : 17) + 'px Orbitron, sans-serif';
+    ctx.fillStyle = f.perfect ? '#ffd23f' : '#9dff3c';
+    ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 14;
+    ctx.fillText(f.text, f.x, f.y);
+    ctx.shadowBlur = 0;
+  }
+  ctx.globalAlpha = 1;
+
   if (S.flash > 0){
     ctx.fillStyle = 'rgba(255,255,255,' + (S.flash * 0.14) + ')';
     ctx.fillRect(0, 0, W, H);
   }
-  var now = performance.now();
-  if (S.lastCombo >= 2 && now - S.comboAt < 900){
+
+  // คอมโบ = เคลียร์ติดกันไม่ขาดช่วง มีแถบบอกว่าเหลือเวลาต่อคอมโบอีกเท่าไหร่
+  var age = now - S.streakAt;
+  if (S.streak >= 2 && age < STREAK_MS){
     ctx.font = '800 22px Orbitron, sans-serif';
     ctx.fillStyle = '#9dff3c'; ctx.shadowColor = '#9dff3c'; ctx.shadowBlur = 18;
-    ctx.textAlign = 'center';
-    ctx.fillText('COMBO x' + S.lastCombo, W / 2, PAD + 30);
-    ctx.shadowBlur = 0; ctx.textAlign = 'left';
+    ctx.fillText('COMBO x' + S.streak, W / 2, PAD + 30);
+    ctx.shadowBlur = 0;
+    var bwid = 120, left = 1 - age / STREAK_MS;
+    ctx.fillStyle = 'rgba(157,255,60,.22)';
+    ctx.fillRect(W / 2 - bwid / 2, PAD + 36, bwid, 3);
+    ctx.fillStyle = '#9dff3c';
+    ctx.fillRect(W / 2 - bwid / 2, PAD + 36, bwid * left, 3);
   }
-  if (S.lastBonus > 0 && now - S.comboAt < 1100){
+  if (S.lastBonus > 0 && age < 1100){
     ctx.font = '800 16px Orbitron, sans-serif';
     ctx.fillStyle = '#ffd23f'; ctx.shadowColor = '#ffd23f'; ctx.shadowBlur = 14;
-    ctx.textAlign = 'center';
-    ctx.fillText('PERFECT +' + S.lastBonus, W / 2, PAD + 54);
-    ctx.shadowBlur = 0; ctx.textAlign = 'left';
+    ctx.fillText('PERFECT +' + S.lastBonus, W / 2, PAD + 58);
+    ctx.shadowBlur = 0;
   }
   if (S.toast && now - S.toastAt < 1500){
     ctx.font = '600 15px "Noto Sans Thai", sans-serif';
     ctx.fillStyle = 'rgba(232,236,255,.92)';
-    ctx.textAlign = 'center';
-    ctx.fillText(S.toast, W / 2, PAD + ROWS * CELL - 16);
-    ctx.textAlign = 'left';
+    ctx.fillText(S.toast, W / 2, PAD + ph - 16);
   }
+  ctx.textAlign = 'left';
 
   ctx.restore();
 }
@@ -1106,14 +1277,19 @@ function start(){
 function gameOver(row){
   setPhase('over');
   ui.final.textContent = S.score;
-  var where = (row == null) ? '' : ' (แถว ' + (row + 1) + ')';
+  var where = (row == null) ? '' : 'แถวที่ ' + (row + 1);
   if (S.score > S.high){
     S.high = S.score;
     try { localStorage.setItem('blockshooter.high', String(S.high)); } catch(e){}
-    ui.overMsg.textContent = 'สถิติใหม่! บล็อกชนขอบซ้าย' + where + ' ที่เลเวล ' + S.level;
+    ui.overMsg.textContent = 'สถิติใหม่! ก้อนทะลุเส้นแดงที่ ' + where + ' ตอนเลเวล ' + S.level;
   } else {
-    ui.overMsg.textContent = 'บล็อกชนขอบซ้าย' + where + ' ที่เลเวล ' + S.level + ' — สถิติสูงสุด ' + S.high;
+    ui.overMsg.textContent = 'ก้อนทะลุเส้นแดงที่ ' + where + ' ตอนเลเวล ' + S.level +
+      ' — สถิติสูงสุดคุณคือ ' + S.high;
   }
+  var st = S.stats;
+  var acc = st.shots ? Math.round(st.hits / st.shots * 100) : 0;
+  ui.overStats.textContent = 'ระเบิดไป ' + st.clears + ' ก้อน · PERFECT ' + st.perfects +
+    ' ครั้ง · ยิงโดนเป้า ' + acc + '% (' + st.hits + '/' + st.shots + ' นัด)';
   syncHud();
   beep(150, 0.5, 'sawtooth', 0.08);
 }
@@ -1250,9 +1426,9 @@ el('btnResume').addEventListener('click', togglePause);
 el('btnRestart').addEventListener('click', start);
 
 // สลับแท็บ/ย่อหน้าต่างระหว่างเล่น = พอสให้เลย ไม่ให้กลับมาเจอศพ
-document.addEventListener('visibilitychange', function(){
-  if (document.hidden && S.phase === 'play') setPhase('pause');
-});
+function pauseIfPlaying(){ if (S.phase === 'play') setPhase('pause'); }
+document.addEventListener('visibilitychange', function(){ if (document.hidden) pauseIfPlaying(); });
+window.addEventListener('blur', pauseIfPlaying);
 
 /* ==========================================================
    GAME LOOP
@@ -1271,6 +1447,11 @@ function loop(now){
       S.shiftAcc -= S.stepMs;
       shiftWall();
     }
+    // จังหวะหัวใจเต้นตอนก้อนใกล้เส้นแดง ยิ่งใกล้ยิ่งถี่
+    if (S.heat >= 0.5 && now - S.warnAt > 900 - 500 * S.heat){
+      S.warnAt = now;
+      beep(90 + 40 * S.heat, 0.09, 'sine', 0.03 + 0.04 * S.heat);
+    }
   }
   syncCooldown();
   stepFx(dt);
@@ -1286,12 +1467,6 @@ try {
   var sv = localStorage.getItem('blockshooter.sound');
   if (sv === '0'){ S.soundOn = false; el('btnSound').textContent = '🔇'; }
 } catch(e){}
-el('uiSubtitle').textContent = 'สนาม ' + ROWS + '×' + COLS +
-  ' · ก้อนกว้าง ' + FW + ' ช่องลอยมาแบบแหว่ง ๆ — ยิงเติมให้กลายเป็นสี่เหลี่ยมทึบ';
-el('uiHint').innerHTML = 'แท่งตั้งยิงเข้าขั้นบันไดนัดเดียว เติมได้หลายระดับความลึกพร้อมกัน &mdash; ' +
-  'รอยแหว่งอยู่ด้านซ้ายของก้อนเสมอ กระสุนจึงเข้าถึงได้ทุกช่อง &mdash; ' +
-  'แต่ถ้ามีก้อนอื่นขวางอยู่ข้างหน้าในแถวเดียวกัน ต้องเก็บก้อนหน้าให้เสร็จก่อน<br>' +
-  'สนาม ' + ROWS + ' แถว &times; ' + COLS + ' ช่อง &mdash; คลิกบนสนามย้ายปืนเร็วกว่ากดลูกศรทีละแถว';
 fitCanvas();
 window.addEventListener('resize', fitCanvas);
 reset();
