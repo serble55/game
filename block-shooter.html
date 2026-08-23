@@ -54,6 +54,8 @@ body{
 .stat b{display:block;font-size:10px;letter-spacing:.14em;color:var(--dim);font-weight:600;margin-bottom:2px}
 .stat span{font-family:Orbitron,monospace;font-size:18px;font-weight:800;color:#fff;text-shadow:0 0 10px rgba(34,227,255,.6)}
 .stat.piece{flex:0 0 auto;min-width:0;padding:6px 12px;position:relative;overflow:hidden}
+.stat.item span{font-size:19px}
+.stat.item.ready{border-color:rgba(255,138,61,.75);box-shadow:0 0 16px rgba(255,138,61,.35)}
 .stat.piece canvas{display:block}
 .stat.piece.next{opacity:.7}
 .cd{
@@ -94,20 +96,22 @@ canvas#cv{
 .overlay p{margin:0;font-size:13px;color:var(--dim);line-height:1.85;max-width:min(62ch,100%)}
 .overlay .ctl{display:inline-block;white-space:nowrap;margin:0 3px}
 /* จอเตี้ย/แคบ: ย่อตัวอักษรให้คำอธิบายอยู่ในกรอบสนามได้ */
-/* จอแคบ: บีบแถบสถานะให้ไม่กินความสูงจอไปสองแถว */
+/* จอแคบ: จัดแถบสถานะเป็นตาราง 4 ช่อง = 2 แถวพอดี ไม่ให้ไหลเป็น 3 แถว */
 @media (max-width:560px){
-  .hud{gap:6px}
-  .stat{min-width:52px;padding:5px 7px}
-  .stat b{font-size:9px;letter-spacing:.08em}
+  .hud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .stat, .stat.piece{min-width:0;padding:4px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .stat b{font-size:9px;letter-spacing:.06em;margin-bottom:1px}
   .stat span{font-size:15px}
-  .stat.piece{padding:5px 8px}
-  .iconbtn{width:36px;font-size:15px}
-  .pad button{padding:13px 4px;font-size:13px}
+  .stat.item span{font-size:16px}
+  .iconbtn{width:auto;font-size:15px;padding:4px}
+  .pad{gap:6px}
+  .pad button{padding:11px 3px;font-size:12.5px}
+  .pad button .g{font-size:18px}
 }
 @media (max-width:560px), (max-height:700px){
-  .overlay{gap:5px;padding:10px}
-  .overlay h2{font-size:16px}
-  .overlay p{font-size:11.5px;line-height:1.5}
+  .overlay{gap:4px;padding:10px}
+  .overlay h2{font-size:15px}
+  .overlay p{font-size:11px;line-height:1.45}
   .overlay p .k{min-width:18px;padding:0 4px;font-size:10.5px}
   .play{padding:9px 22px;font-size:14px}
 }
@@ -125,13 +129,16 @@ canvas#cv{
   border:0;box-shadow:0 0 22px rgba(34,227,255,.55);
 }
 .play:active{transform:translateY(1px)}
+.modes{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
 .ghost{
   padding:8px 18px;border-radius:999px;cursor:pointer;
   font-family:"Noto Sans Thai",sans-serif;font-size:13px;font-weight:600;
   color:var(--text);background:var(--panel);border:1px solid var(--line);
 }
 
-.pad{width:100%;max-width:820px;display:grid;grid-template-columns:1fr 1fr 1.4fr 1fr 1fr;gap:8px}
+.pad{width:100%;max-width:820px;display:grid;grid-template-columns:1fr 1fr 1.4fr 1fr 1fr 1fr;gap:8px}
+#btnItem{background:linear-gradient(135deg,rgba(255,138,61,.16),rgba(255,210,63,.16));border-color:rgba(255,138,61,.4)}
+#btnItem:disabled{opacity:.35;cursor:default;background:var(--panel);border-color:var(--line)}
 .pad button{
   padding:15px 6px;border-radius:14px;cursor:pointer;
   background:var(--panel);border:1px solid var(--line);color:var(--text);
@@ -160,7 +167,8 @@ canvas#cv{
 <div class="hud">
   <div class="stat"><b>คะแนน</b><span id="uiScore">0</span></div>
   <div class="stat"><b>เลเวล</b><span id="uiLevel">1</span></div>
-  <div class="stat"><b>สูงสุด</b><span id="uiHigh">0</span></div>
+  <div class="stat"><b id="uiHighLabel">สูงสุด</b><span id="uiHigh">0</span></div>
+  <div class="stat item" id="uiItemBox"><b>ไอเทม</b><span id="uiItem">—</span></div>
   <div class="stat piece"><b>กระสุน</b><canvas id="pvCur" width="48" height="48"></canvas><div class="cd" id="cdBar"></div></div>
   <div class="stat piece next"><b>ถัดไป</b><canvas id="pvNext" width="48" height="48"></canvas></div>
   <button class="iconbtn" id="btnSound" title="เปิด/ปิดเสียง" aria-label="เปิดหรือปิดเสียง">&#128266;</button>
@@ -182,13 +190,24 @@ canvas#cv{
        <b>วงกลมประ</b> ในก้อน คือช่องที่ยังขาด เติมครบเมื่อไหร่ระเบิดเมื่อนั้น<br>
        <b>เส้นประสีชมพู</b>พาดแถวไหน แปลว่าแถวนั้นไม่มีอะไรให้ชน ยิงไปก็เสียนัดเปล่า</p>
 
+    <p><b style="color:#ff8a3d">ยิ่งเก็บก้อนใหญ่ยิ่งคุ้ม</b> — ก้อน 4×4 ก้อนเดียวได้คะแนนมากกว่า
+       ก้อน 2×2 สี่ก้อนรวมกัน จะรีบเก็บหรือปล่อยให้โตก่อนก็คิดเอา<br>
+       เคลียร์ติดกันได้<b>คอมโบ</b> คูณคะแนน · คอมโบ x3 ได้<b>ระเบิด</b> x5 ได้<b>เลเซอร์</b>
+       กด <span class="k">V</span> ยิงตอนก้อนจ่อเส้นแดง<br>
+       นัดเดียวปิดสองก้อนพร้อมกันมีโบนัสให้ · ทุก 5 เลเวลเจอ<b>เวฟใหญ่</b></p>
+
     <p><span class="ctl"><span class="k">&uarr;</span><span class="k">&darr;</span> เลื่อนปืน</span>&middot;<span
        class="ctl"><span class="k">Space</span> ยิง</span>&middot;<span
        class="ctl"><span class="k">Z</span><span class="k">X</span> หมุนกระสุน</span>&middot;<span
        class="ctl"><span class="k">C</span> ทิ้งนัดที่ยัดไม่ลง</span>&middot;<span
        class="ctl"><span class="k">P</span> พอส</span><br>
        <b style="color:#9dff3c">แตะหรือคลิกบนสนาม</b> เพื่อย้ายปืนไปแถวนั้นทันที</p>
-    <button class="play" id="btnStart">เริ่มเกม</button>
+    <div class="modes">
+      <button class="ghost" data-mode="chill">ชิล</button>
+      <button class="play" id="btnStart" data-mode="normal">เริ่มเกม</button>
+      <button class="ghost" data-mode="hard">โหด</button>
+    </div>
+    <p class="stats" id="uiCareer"></p>
   </div>
 
   <div class="overlay" id="ovPause" hidden>
@@ -203,7 +222,11 @@ canvas#cv{
     <div class="big" id="uiFinal">0</div>
     <p id="uiOverMsg">ก้อนทะลุเส้นแดงแล้ว</p>
     <p class="stats" id="uiOverStats"></p>
-    <button class="play" id="btnAgain">เล่นอีกครั้ง</button>
+    <p class="stats" id="uiOverCareer"></p>
+    <div class="modes">
+      <button class="play" id="btnAgain">เล่นอีกครั้ง</button>
+      <button class="ghost" id="btnModes">เปลี่ยนโหมด</button>
+    </div>
   </div>
 </div>
 
@@ -213,10 +236,12 @@ canvas#cv{
   <button id="btnFire" aria-label="ยิง"><span class="g">&#9673;</span>ยิง</button>
   <button id="btnCycle" aria-label="หมุนกระสุน"><span class="g">&#10227;</span>หมุน</button>
   <button id="btnSkip" aria-label="ทิ้งกระสุน"><span class="g">&#10005;</span>ทิ้ง</button>
+  <button id="btnItem" aria-label="ใช้ไอเทม" disabled><span class="g" id="btnItemIcon">&#9679;</span>ใช้</button>
 </div>
 
 <p class="hint" id="uiHint">กระสุนยาว ๆ ยิงเข้าขั้นบันไดทีเดียวเติมได้หลายชั้น &mdash; ช่องที่ชนจะเกาะติด ส่วนช่องที่ยังโล่งบินต่อไปเอง<br>
-เคลียร์ได้ 1 ก้อน กำแพงจะถอยให้หายใจอีกนิด &middot; เคลียร์ติด ๆ กันได้ตัวคูณคะแนน &middot; ไม่มีนัดไหนเสียเลยได้โบนัส PERFECT</p>
+เคลียร์ได้ 1 ก้อน กำแพงจะถอยให้หายใจอีกนิด &middot; ก้อนใหญ่คะแนนดีกว่าก้อนเล็กแบบทวีคูณ &middot; ไม่มีนัดไหนเสียเลยได้โบนัส PERFECT<br>
+<b>ระเบิด</b> ล้าง 3&times;3 ตรงจุดที่ชน &middot; <b>เลเซอร์</b> ทะลุล้างทั้งแถว &mdash; ทั้งคู่ได้จากคอมโบ เก็บได้ทีละชิ้น</p>
 
 <script>
 (function(){
@@ -241,7 +266,13 @@ var H = PAD * 2 + CELL * ROWS;
 var BULLET_MS = 14;      // กระสุนเดินหน้า 1 ช่องใช้เวลาเท่านี้
 var MAX_SHOTS = 6;       // ยิงพร้อมกันได้หลายนัด แต่ต้องคนละแถว (กันชนท้ายกัน)
 var SKIP_CD   = 600;     // ทิ้งกระสุนที่ใช้ไม่ได้ แล้วรอเท่านี้ก่อนทิ้งอีก
-var BASE_STEP = 1600;    // กำแพงเลื่อน 1 ช่องที่เลเวล 1
+/* โหมด: คุมความเร็วกำแพงกับความหนาแน่นของก้อน เก็บสถิติสูงสุดแยกกัน */
+var MODES = {
+  chill:  { name:'ชิล',  step: 2200, vgap:  1, gapw:  2 },
+  normal: { name:'ปกติ', step: 1600, vgap:  0, gapw:  0 },
+  hard:   { name:'โหด',  step: 1100, vgap: -1, gapw: -1 }
+};
+var BASE_STEP = 1600;    // กำแพงเลื่อน 1 ช่องที่เลเวล 1 (โหมดปกติ)
 var MIN_STEP  = 420;
 var STEP_DROP = 60;      // เร็วขึ้นต่อ 1 เลเวล
 var LEVEL_PTS = 600;
@@ -253,6 +284,10 @@ var MIN_VGAP  = 1;
 var MAX_BLOBS = 12;      // กันลูปหลุด ไม่ใช่โควตา
 var MIN_GAPW  = 3;       // ช่องว่างระหว่างแถบแคบสุด
 var STREAK_MS = 4000;    // เคลียร์ครั้งถัดไปภายในเวลานี้ = ต่อคอมโบ
+var BIG_BONUS = 0.10;    // ก้อนใหญ่ขึ้น 1 ช่อง = คะแนนต่อช่องเพิ่มอีก 10%
+var ITEM_AT   = { BOMB: 3, LASER: 5 };   // คอมโบเท่านี้ได้ไอเทม (ถ้ามือว่าง)
+var WAVE_EVERY = 5;      // ทุกกี่เลเวลเจอเวฟใหญ่
+var LASER_MS  = 6;       // เลเซอร์วิ่งเร็วกว่ากระสุนปกติ
 var DANGER_COLS = 4;     // เข้าใกล้เส้นแดงกี่ช่องถึงเริ่มเตือน
 
 // เคารพ prefers-reduced-motion: ปิดสั่นจอ ลดแฟลชและเศษระเบิด
@@ -306,8 +341,13 @@ var S = {
   streak: 0, streakAt: -99999,
   skipCd: 0,
   floaters: [],                                    // ตัวเลขคะแนนลอยขึ้นตรงจุดที่ระเบิด
-  stats: { shots:0, hits:0, clears:0, perfects:0 },
+  stats: { shots:0, hits:0, clears:0, perfects:0, multis:0, bestStreak:0, bestW:0, bestH:0 },
   heat: 0, warnAt: 0,
+  mode: 'normal',
+  item: null,                                      // ไอเทมในมือ: null | 'BOMB' | 'LASER'
+  multiN: 0, multiAt: -99999,                      // นัดเดียวปิดหลายก้อน
+  lastBossLevel: 0,
+  career: { games:0, clears:0, bestCombo:0, bestW:0, bestH:0 },
   waste: 0,           // กระสุนที่หลุดออกนอกสนาม/ทิ้งไป นับตั้งแต่เคลียร์ครั้งล่าสุด
   dirty: true,        // สนามเปลี่ยน → คำนวณก้อนใหม่
   comps: null,
@@ -319,6 +359,9 @@ var ui = {
   score: el('uiScore'), level: el('uiLevel'), high: el('uiHigh'),
   ammoText: el('uiAmmoText'),
   final: el('uiFinal'), overMsg: el('uiOverMsg'), overStats: el('uiOverStats'),
+  overCareer: el('uiOverCareer'), career: el('uiCareer'),
+  highLabel: el('uiHighLabel'), item: el('uiItem'), itemBox: el('uiItemBox'),
+  btnItem: el('btnItem'), btnItemIcon: el('btnItemIcon'),
   ovStart: el('ovStart'), ovPause: el('ovPause'), ovOver: el('ovOver'),
   pvCur: el('pvCur'), pvNext: el('pvNext'), cdBar: el('cdBar')
 };
@@ -372,8 +415,10 @@ function makeBlob(h){
 }
 
 // ความยากไต่ตามเลเวล: ก้อนถี่ขึ้นทั้งแนวตั้งและแนวนอน
-function vGap(){ return Math.max(MIN_VGAP, VGAP - Math.floor((S.level - 1) / 4)) + ri(2); }
-function gapWidth(){ return Math.max(MIN_GAPW, GAPW - Math.floor((S.level - 1) / 3)); }
+function mode(){ return MODES[S.mode] || MODES.normal; }
+function baseStep(){ return mode().step; }
+function vGap(){ return Math.max(MIN_VGAP, VGAP + mode().vgap - Math.floor((S.level - 1) / 4)) + ri(2); }
+function gapWidth(){ return Math.max(MIN_GAPW, GAPW + mode().gapw - Math.floor((S.level - 1) / 3)); }
 
 // คืนคอลัมน์ FW อัน (แต่ละอัน array ยาว ROWS) + คอลัมน์ว่างอีกจำนวนหนึ่ง
 // ค่าในคอลัมน์: 0 = ว่าง, k>0 = ก้อนที่ใช้สี PALETTE[k-1]
@@ -384,13 +429,21 @@ function makeFormation(){
 
   /* วางก้อนไล่ตั้งแต่บนสุดจนสุดขอบล่าง — เดิมหยุดเมื่อครบโควตา 2 ก้อน
      ก้อนเลยกองอยู่ครึ่งบนตลอด ครึ่งล่างว่างเป็นระบบ */
+  // ทุก WAVE_EVERY เลเวลส่งเวฟใหญ่มา 1 แถบ: ก้อนสูงกว่าปกติและชิดกันกว่าปกติ
+  var boss = (S.level % WAVE_EVERY === 0) && (S.lastBossLevel !== S.level);
+  if (boss){
+    S.lastBossLevel = S.level;
+    toast('เวฟ ' + (S.level / WAVE_EVERY) + ' กำลังมา!');
+    beep(180, 0.3, 'sawtooth', 0.06);
+  }
+
   var blobs = [], cursor = ri(2), h;
   while (cursor + 2 <= ROWS && blobs.length < MAX_BLOBS){
-    h = 2 + ri(3);                           // สูง 2..4 แถว
+    h = boss ? 4 + ri(3) : 2 + ri(3);        // ปกติสูง 2-4 แถว เวฟใหญ่ 4-6 แถว
     if (cursor + h > ROWS) h = ROWS - cursor;
     if (h < 2) break;
     blobs.push({ top: cursor, h: h });
-    cursor += h + vGap();
+    cursor += h + (boss ? 1 : vGap());
   }
   if (!blobs.length){
     h = 3 + ri(3);
@@ -469,7 +522,7 @@ function reset(){
   S.next = { piece: randPiece() };
   S.bullets = [];
   S.score = 0;
-  S.stepMs = BASE_STEP;
+  S.stepMs = baseStep();
   S.shiftAcc = 0;
   S.particles = [];
   S.shake = 0;
@@ -478,7 +531,10 @@ function reset(){
   S.streak = 0;
   S.streakAt = -99999;
   S.floaters = [];
-  S.stats = { shots:0, hits:0, clears:0, perfects:0 };
+  S.stats = { shots:0, hits:0, clears:0, perfects:0, multis:0, bestStreak:0, bestW:0, bestH:0 };
+  S.item = null;
+  S.multiN = 0; S.multiAt = -99999;
+  S.lastBossLevel = 0;
   S.heat = 0;
   S.skipCd = 0;
   S.waste = 0;
@@ -510,6 +566,7 @@ function shiftWall(){
   for (var i = 0; i < S.bullets.length; i++){
     var b = S.bullets[i];
     if (!b.cells.length) continue;
+    if (b.special) { keep.push(b); continue; }   // ไอเทมทะลุกำแพงที่เลื่อนมาทับได้
     if (!canPlace(b.cells, b.row, b.col)){
       var span = 0;
       for (var j = 0; j < b.cells.length; j++) if (b.cells[j][1] + 1 > span) span = b.cells[j][1] + 1;
@@ -607,6 +664,86 @@ function settle(b){
   return placed;
 }
 
+/* ไอเทมได้จากการเล่นเก่ง (คอมโบสูง) เก็บได้ทีละชิ้น
+   เอาไว้แก้สถานการณ์ตอนก้อนจ่อเส้นแดง — เดิมพอเอาไม่อยู่ก็คือจบอย่างเดียว */
+function grantItem(){
+  if (S.item) return;
+  var want = null;
+  if (S.streak >= ITEM_AT.LASER) want = 'LASER';
+  else if (S.streak >= ITEM_AT.BOMB) want = 'BOMB';
+  if (!want) return;
+  S.item = want;
+  toast(want === 'LASER' ? 'ได้เลเซอร์! กด V เพื่อยิง' : 'ได้ระเบิด! กด V เพื่อยิง');
+  beep(1180, 0.18, 'triangle', 0.06);
+}
+
+function itemColor(kind){ return kind === 'LASER' ? '#7cf9ff' : '#ff8a3d'; }
+
+function useItem(){
+  if (S.phase !== 'play' || !S.item) return;
+  if (S.bullets.length >= MAX_SHOTS) return;
+  var cells = [[0, 0]];
+  var row = Math.min(ROWS - 1, Math.max(0, S.gunRow));
+  if (laneBusy(cells, row)){ beep(200, 0.05, 'square', 0.04); return; }
+  S.bullets.push({
+    cells: cells, w: 1, row: row, col: -1, acc: 0,
+    color: itemColor(S.item), hit: false,
+    special: S.item, ms: S.item === 'LASER' ? LASER_MS : BULLET_MS, trail: -1
+  });
+  beep(S.item === 'LASER' ? 1500 : 320, 0.14, 'sawtooth', 0.07);
+  S.item = null;
+  S.stats.shots++;
+  syncHud();
+}
+
+// ทำลายช่องเดียว (เลเซอร์กินอะไรที่ขวางหน้า)
+function zap(r, c){
+  if (!S.cells[r][c]) return 0;
+  burst(c, r, S.cells[r][c].color);
+  S.cells[r][c] = null;
+  S.dirty = true;
+  return 1;
+}
+
+// ระเบิด 3x3 รอบจุดที่ชน
+function explode(r0, c0){
+  var hitCount = 0, r, c;
+  for (r = r0 - 1; r <= r0 + 1; r++){
+    if (r < 0 || r >= ROWS) continue;
+    for (c = c0 - 1; c <= c0 + 1; c++){
+      if (c < 0 || c >= COLS) continue;
+      hitCount += zap(r, c);
+    }
+  }
+  if (hitCount){
+    S.score += hitCount * 5;
+    S.shake = REDUCE ? 0 : 16;
+    S.flash = REDUCE ? 0.3 : 0.8;
+    beep(140, 0.3, 'sawtooth', 0.08);
+    resolve();
+  }
+  return hitCount;
+}
+
+// ไอเทมเดินหน้าคนละแบบกับกระสุนปกติ — ไม่เกาะ ไม่เติม มีแต่ล้าง
+function advanceSpecial(b){
+  var c = b.col + 1, r = b.row;
+  if (c >= COLS){ b.cells = []; return; }        // สุดขอบขวา หมดฤทธิ์
+  if (b.special === 'LASER'){
+    b.col = c;
+    if (S.cells[r][c]){
+      S.score += zap(r, c) * 5;
+      markHit(b);
+      resolve();
+    }
+    return;                                       // ทะลุต่อไปเรื่อย ๆ
+  }
+  if (S.cells[r][c]){                             // BOMB: ชนแล้วระเบิดทันที
+    if (explode(r, c)) markHit(b);
+    b.cells = [];
+  } else b.col = c;
+}
+
 function weld(b){
   if (!b) return;
   var placed = 0, lost = 0;
@@ -625,6 +762,7 @@ function weld(b){
 // เดินหน้า 1 ช่อง — ช่องที่ชนให้เกาะติดที่เดิม ช่องที่ยังโปร่งไหลต่อไปเอง
 // (แท่งตั้งยิงเข้าขั้นบันไดนัดเดียว จึงเติมได้หลายระดับความลึก)
 function advanceBullet(b){
+  if (b.special){ advanceSpecial(b); return; }
   var i, gone = 0, placed = 0;
 
   // 1) ช่องที่ก้าวต่อไปจะเลยขอบขวา = ยิงพลาด ไหลออกนอกสนาม หายไปเลย
@@ -649,9 +787,10 @@ function stepBullets(dt){
   var alive = [];
   for (var i = 0; i < S.bullets.length; i++){
     var b = S.bullets[i];
+    var ms = b.ms || BULLET_MS;
     b.acc += dt;
-    while (b.acc >= BULLET_MS && b.cells.length){
-      b.acc -= BULLET_MS;
+    while (b.acc >= ms && b.cells.length){
+      b.acc -= ms;
       advanceBullet(b);
     }
     if (b.cells.length) alive.push(b);
@@ -757,10 +896,16 @@ function resolve(){
     if (!hit.length) break;
     chain++;
 
-    var count = 0, maxArea = 0;
+    var count = 0, maxArea = 0, base = 0;
     for (i = 0; i < hit.length; i++){
       var comp = hit[i];
-      if (comp.cells.length > maxArea) maxArea = comp.cells.length;
+      var area = comp.cells.length;
+      var cw = comp.c1 - comp.c0 + 1, ch = comp.r1 - comp.r0 + 1;
+      if (area > maxArea) maxArea = area;
+      if (cw * ch > S.stats.bestW * S.stats.bestH){ S.stats.bestW = cw; S.stats.bestH = ch; }
+      /* ก้อนใหญ่ต้องคุ้มกว่าก้อนเล็กแบบทวีคูณ ไม่งั้น 4x4 ก้อนเดียว
+         มีค่าเท่ากับ 2x2 สี่ก้อนเป๊ะ แล้วจะไม่มีเหตุผลให้เลือกเป้าเลย */
+      base += Math.round(area * 10 * (1 + (area - 4) * BIG_BONUS));
       for (var j = 0; j < comp.cells.length; j++){
         var r = comp.cells[j][0], c = comp.cells[j][1];
         burst(c, r, S.cells[r][c] ? S.cells[r][c].color : '#ffffff');
@@ -778,15 +923,23 @@ function resolve(){
     S.streakAt = now;
     var mult = S.streak;
 
-    var gained = count * 10 * mult;
+    var gained = base * mult;
     // โบนัสแม่นยำ: ไม่มีกระสุนหลุดออกนอกสนามเลยตั้งแต่เคลียร์ครั้งก่อน
-    var bonus = (S.waste === 0) ? count * 5 * mult : 0;
-    S.score += gained + bonus;
+    var bonus = (S.waste === 0) ? Math.round(gained * 0.5) : 0;
+    // นัดเดียวปิดได้หลายก้อนพร้อมกัน — ช็อตที่ยากที่สุดในเกม ต้องได้อะไรตอบแทน
+    var multi = (hit.length >= 2) ? Math.round(gained * 0.5 * (hit.length - 1)) : 0;
+    if (multi){
+      S.multiN = hit.length; S.multiAt = now; S.stats.multis++;
+      beep(880 + hit.length * 120, 0.18, 'square', 0.06);
+    }
+    S.score += gained + bonus + multi;
     S.lastBonus = bonus;
     S.waste = 0;
     S.stats.clears += hit.length;
+    if (S.streak > S.stats.bestStreak) S.stats.bestStreak = S.streak;
     if (bonus) S.stats.perfects++;
-    floatScore(hit, gained + bonus, bonus > 0);
+    floatScore(hit, gained + bonus + multi, bonus > 0);
+    grantItem();
     // รางวัล: เคลียร์ได้ = ถ่วงกำแพงให้อีก 1 ช่อง เล่นเก่งยิ่งยืดเกมได้เอง
     S.shiftAcc = Math.max(-S.stepMs * 2, S.shiftAcc - S.stepMs);
     S.shake = REDUCE ? 0 : Math.min(18, 6 + maxArea);
@@ -796,7 +949,7 @@ function resolve(){
 
     var lv = 1 + Math.floor(S.score / LEVEL_PTS);
     if (lv > S.level){ S.level = lv; beep(1040, 0.16, 'sine', 0.06); }
-    S.stepMs = Math.max(MIN_STEP, BASE_STEP - (S.level - 1) * STEP_DROP);
+    S.stepMs = Math.max(MIN_STEP, baseStep() - (S.level - 1) * STEP_DROP);
   }
   syncHud();
 }
@@ -1151,7 +1304,18 @@ function draw(){
 
   for (var k = 0; k < S.bullets.length; k++){
     var b = S.bullets[k];
-    var t = b.acc / BULLET_MS;
+    var t = b.acc / (b.ms || BULLET_MS);
+    if (b.special === 'LASER'){          // ลำแสงลากยาวจากปากกระบอกถึงหัวลำแสง
+      var ly = PAD + b.row * CELL + CELL / 2;
+      var lx = PAD + (GUN_W + b.col + t) * CELL + CELL / 2;
+      var lg = ctx.createLinearGradient(px, ly, lx, ly);
+      lg.addColorStop(0, 'rgba(124,249,255,0)');
+      lg.addColorStop(1, 'rgba(124,249,255,.85)');
+      ctx.strokeStyle = lg; ctx.lineWidth = CELL * 0.5;
+      ctx.shadowColor = '#7cf9ff'; ctx.shadowBlur = 18;
+      ctx.beginPath(); ctx.moveTo(px, ly); ctx.lineTo(Math.min(lx, px + pw), ly); ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
     for (i = 0; i < b.cells.length; i++){
       var br = b.row + b.cells[i][0];
       var bc = b.col + b.cells[i][1] + t;
@@ -1200,6 +1364,12 @@ function draw(){
     ctx.fillStyle = '#9dff3c';
     ctx.fillRect(W / 2 - bwid / 2, PAD + 36, bwid * left, 3);
   }
+  if (S.multiN >= 2 && now - S.multiAt < 1200){
+    ctx.font = '800 20px Orbitron, sans-serif';
+    ctx.fillStyle = '#ff8a3d'; ctx.shadowColor = '#ff8a3d'; ctx.shadowBlur = 16;
+    ctx.fillText((S.multiN >= 3 ? 'TRIPLE' : 'DOUBLE') + ' KILL', W / 2, PAD + 84);
+    ctx.shadowBlur = 0;
+  }
   if (S.lastBonus > 0 && age < 1100){
     ctx.font = '800 16px Orbitron, sans-serif';
     ctx.fillStyle = '#ffd23f'; ctx.shadowColor = '#ffd23f'; ctx.shadowBlur = 14;
@@ -1247,10 +1417,16 @@ function drawMini(cnv, piece, rot){
 /* ==========================================================
    HUD / phase
    ========================================================== */
+var ITEM_ICON = { BOMB: '\uD83D\uDCA3', LASER: '\u26A1' };
 function syncHud(){
   ui.score.textContent = S.score;
   ui.level.textContent = S.level;
   ui.high.textContent  = S.high;
+  ui.highLabel.textContent = 'สูงสุด·' + mode().name;
+  ui.item.textContent = S.item ? ITEM_ICON[S.item] : '—';
+  ui.itemBox.className = 'stat item' + (S.item ? ' ready' : '');
+  ui.btnItem.disabled = !S.item;
+  ui.btnItemIcon.textContent = S.item ? ITEM_ICON[S.item] : '\u25CF';
   if (S.cur)  drawMini(ui.pvCur,  S.cur.piece,  S.cur.rot);
   if (S.next) drawMini(ui.pvNext, S.next.piece, 0);
   if (S.cur && S.next){
@@ -1269,6 +1445,34 @@ function syncCooldown(){
 
 function toast(msg){ S.toast = msg; S.toastAt = performance.now(); }
 
+var CAREER_KEY = 'blockshooter.career';
+function loadCareer(){
+  try {
+    var raw = localStorage.getItem(CAREER_KEY);
+    if (raw){
+      var c = JSON.parse(raw);
+      S.career = { games:c.games|0, clears:c.clears|0, bestCombo:c.bestCombo|0, bestW:c.bestW|0, bestH:c.bestH|0 };
+    }
+  } catch(e){}
+}
+function saveCareer(){
+  try { localStorage.setItem(CAREER_KEY, JSON.stringify(S.career)); } catch(e){}
+}
+function careerLine(){
+  var c = S.career;
+  if (!c.games) return '';
+  var out = 'ตลอดกาล: เล่นมา ' + c.games + ' รอบ · ระเบิดรวม ' + c.clears + ' ก้อน';
+  if (c.bestW) out += ' · ก้อนใหญ่สุด ' + c.bestW + '×' + c.bestH;
+  if (c.bestCombo >= 2) out += ' · คอมโบสูงสุด x' + c.bestCombo;
+  return out;
+}
+
+function highKey(){ return 'blockshooter.high.' + S.mode; }
+function loadHigh(){
+  try { S.high = parseInt(localStorage.getItem(highKey()) || '0', 10) || 0; }
+  catch(e){ S.high = 0; }
+}
+
 function setPhase(p){
   S.phase = p;
   ui.ovStart.hidden = (p !== 'start');
@@ -1276,7 +1480,9 @@ function setPhase(p){
   ui.ovOver.hidden  = (p !== 'over');
 }
 
-function start(){
+function start(m){
+  if (m && MODES[m]) S.mode = m;
+  loadHigh();
   reset();
   setPhase('play');
   unlockAudio();
@@ -1289,7 +1495,7 @@ function gameOver(row){
   var where = (row == null) ? '' : 'แถวที่ ' + (row + 1);
   if (S.score > S.high){
     S.high = S.score;
-    try { localStorage.setItem('blockshooter.high', String(S.high)); } catch(e){}
+    try { localStorage.setItem(highKey(), String(S.high)); } catch(e){}
     ui.overMsg.textContent = 'สถิติใหม่! ก้อนทะลุเส้นแดงที่ ' + where + ' ตอนเลเวล ' + S.level;
   } else {
     ui.overMsg.textContent = 'ก้อนทะลุเส้นแดงที่ ' + where + ' ตอนเลเวล ' + S.level +
@@ -1297,8 +1503,20 @@ function gameOver(row){
   }
   var st = S.stats;
   var acc = st.shots ? Math.round(st.hits / st.shots * 100) : 0;
-  ui.overStats.textContent = 'ระเบิดไป ' + st.clears + ' ก้อน · PERFECT ' + st.perfects +
+  var line = 'ระเบิดไป ' + st.clears + ' ก้อน · PERFECT ' + st.perfects +
     ' ครั้ง · ยิงโดนเป้า ' + acc + '% (' + st.hits + '/' + st.shots + ' นัด)';
+  if (st.bestStreak >= 2) line += ' · คอมโบสูงสุด x' + st.bestStreak;
+  if (st.multis) line += ' · นัดเดียวสองก้อน ' + st.multis + ' ครั้ง';
+  if (st.bestW) line += ' · ก้อนใหญ่สุด ' + st.bestW + '×' + st.bestH;
+  ui.overStats.textContent = line;
+
+  S.career.games++;
+  S.career.clears += st.clears;
+  if (st.bestStreak > S.career.bestCombo) S.career.bestCombo = st.bestStreak;
+  if (st.bestW * st.bestH > S.career.bestW * S.career.bestH){ S.career.bestW = st.bestW; S.career.bestH = st.bestH; }
+  saveCareer();
+  ui.overCareer.textContent = careerLine();
+  ui.career.textContent = careerLine();
   syncHud();
   beep(150, 0.5, 'sawtooth', 0.08);
 }
@@ -1363,6 +1581,7 @@ window.addEventListener('keydown', function(e){
     case 'z': case 'Z': case 'ArrowLeft':  rotate(-1); break;
     case 'x': case 'X': case 'ArrowRight': rotate(1);  break;
     case 'c': case 'C': skipPiece(); break;
+    case 'v': case 'V': useItem(); break;
     case 'p': case 'P': togglePause(); break;
     case 'r': case 'R': askRestart(); break;
   }
@@ -1423,21 +1642,51 @@ hold('btnFire', function(){
 }, 340, 130);
 tap('btnCycle', function(){ rotate(1); });
 tap('btnSkip', skipPiece);
+tap('btnItem', useItem);
 tap('btnPause', togglePause);
 tap('btnSound', function(){
   S.soundOn = !S.soundOn;
   try { localStorage.setItem('blockshooter.sound', S.soundOn ? '1' : '0'); } catch(e){}
   el('btnSound').textContent = S.soundOn ? '🔊' : '🔇';
 });
-el('btnStart').addEventListener('click', start);
-el('btnAgain').addEventListener('click', start);
+// ปุ่มเลือกโหมดบนหน้าเริ่มเกม
+var modeBtns = document.querySelectorAll('[data-mode]');
+for (var mi = 0; mi < modeBtns.length; mi++){
+  (function(node){
+    node.addEventListener('click', function(){ start(node.getAttribute('data-mode')); });
+  })(modeBtns[mi]);
+}
+el('btnAgain').addEventListener('click', function(){ start(); });
 el('btnResume').addEventListener('click', togglePause);
-el('btnRestart').addEventListener('click', start);
+el('btnRestart').addEventListener('click', function(){ start(); });
+el('btnModes').addEventListener('click', function(){
+  ui.career.textContent = careerLine();
+  setPhase('start');
+});
 
 // สลับแท็บ/ย่อหน้าต่างระหว่างเล่น = พอสให้เลย ไม่ให้กลับมาเจอศพ
 function pauseIfPlaying(){ if (S.phase === 'play') setPhase('pause'); }
 document.addEventListener('visibilitychange', function(){ if (document.hidden) pauseIfPlaying(); });
 window.addEventListener('blur', pauseIfPlaying);
+
+/* ==========================================================
+   เพลงประกอบ — เบสไลน์วนที่เร่งจังหวะตามความเร็วกำแพง
+   ใช้ oscillator ตัวเดิม ไม่มีไฟล์เสียงให้โหลด
+   ========================================================== */
+var BASSLINE = [0, 0, 7, 0, 5, 0, 3, 10];      // ขั้นเสียงจากราก A1
+var musicStep = 0, musicNext = 0;
+function musicTick(now){
+  if (!S.soundOn || S.phase !== 'play'){ musicNext = 0; return; }
+  if (!musicNext){ musicNext = now; musicStep = 0; }
+  if (now < musicNext) return;
+  var noteMs = Math.max(110, Math.min(380, S.stepMs / 4));
+  musicNext = now + noteMs;
+  var f = 55 * Math.pow(2, BASSLINE[musicStep % BASSLINE.length] / 12);
+  beep(f, noteMs / 1000 * 0.85, 'triangle', 0.045);
+  if (musicStep % 4 === 0) beep(f * 4, 0.035, 'square', 0.014);
+  if (S.heat > 0.6 && musicStep % 2 === 1) beep(f * 2, 0.05, 'sawtooth', 0.02);
+  musicStep++;
+}
 
 /* ==========================================================
    GAME LOOP
@@ -1463,6 +1712,7 @@ function loop(now){
     }
   }
   syncCooldown();
+  musicTick(now);
   stepFx(dt);
   draw();
   requestAnimationFrame(loop);
@@ -1471,11 +1721,20 @@ function loop(now){
 /* ==========================================================
    INIT
    ========================================================== */
-try { S.high = parseInt(localStorage.getItem('blockshooter.high') || '0', 10) || 0; } catch(e){}
+// ย้ายสถิติเก่า (ก่อนมีโหมด) มาเป็นของโหมดปกติ
+try {
+  var legacy = localStorage.getItem('blockshooter.high');
+  if (legacy && !localStorage.getItem('blockshooter.high.normal')){
+    localStorage.setItem('blockshooter.high.normal', legacy);
+  }
+} catch(e){}
+loadCareer();
+loadHigh();
 try {
   var sv = localStorage.getItem('blockshooter.sound');
   if (sv === '0'){ S.soundOn = false; el('btnSound').textContent = '🔇'; }
 } catch(e){}
+el('uiCareer').textContent = careerLine();
 fitCanvas();
 window.addEventListener('resize', fitCanvas);
 reset();
