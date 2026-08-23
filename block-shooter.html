@@ -188,7 +188,8 @@ canvas#cv{
     <p><b style="color:#22e3ff">เกมบอกใบ้ให้หมดแล้ว</b><br>
        <b>เงาจาง ๆ</b> ในสนาม คือจุดที่กระสุนนัดนี้จะไปเกาะ — เล็งตามเงาได้เลย ไม่ต้องเดา<br>
        <b>วงกลมประ</b> ในก้อน คือช่องที่ยังขาด เติมครบเมื่อไหร่ระเบิดเมื่อนั้น<br>
-       <b>เส้นประสีชมพู</b>พาดแถวไหน แปลว่าแถวนั้นไม่มีอะไรให้ชน ยิงไปก็เสียนัดเปล่า</p>
+       <b>เส้นประสีชมพู</b>พาดแถวไหน แปลว่าแถวนั้นไม่มีอะไรให้ชน ยิงไปก็เสียนัดเปล่า<br>
+       ยิงพลาดไปเกาะนอกกรอบไม่ต้องกลัว พอก้อนนั้นระเบิด บล็อกที่เกาะรอบ ๆ จะหลุดตามไปด้วย</p>
 
     <p><b style="color:#ff8a3d">ยิ่งเก็บก้อนใหญ่ยิ่งคุ้ม</b> — ก้อน 4×4 ก้อนเดียวได้คะแนนมากกว่า
        ก้อน 2×2 สี่ก้อนรวมกัน จะรีบเก็บหรือปล่อยให้โตก่อนก็คิดเอา<br>
@@ -241,7 +242,8 @@ canvas#cv{
 
 <p class="hint" id="uiHint">กระสุนยาว ๆ ยิงเข้าขั้นบันไดทีเดียวเติมได้หลายชั้น &mdash; ช่องที่ชนจะเกาะติด ส่วนช่องที่ยังโล่งบินต่อไปเอง<br>
 เคลียร์ได้ 1 ก้อน กำแพงจะถอยให้หายใจอีกนิด &middot; ก้อนใหญ่คะแนนดีกว่าก้อนเล็กแบบทวีคูณ &middot; ไม่มีนัดไหนเสียเลยได้โบนัส PERFECT<br>
-<b>ระเบิด</b> ล้าง 3&times;3 ตรงจุดที่ชน &middot; <b>เลเซอร์</b> ทะลุล้างทั้งแถว &mdash; ทั้งคู่ได้จากคอมโบ เก็บได้ทีละชิ้น</p>
+<b>ระเบิด</b> ล้าง 3&times;3 ตรงจุดที่ชน &middot; <b>เลเซอร์</b> ทะลุล้างทั้งแถว &mdash; ทั้งคู่ได้จากคอมโบ เก็บได้ทีละชิ้น<br>
+ก้อนแต่ละก้อนคิดกรอบของตัวเองแยกกัน เติมกรอบไหนเต็มก่อนก้อนนั้นระเบิดก่อน ไม่เกี่ยวกับก้อนข้าง ๆ</p>
 
 <script>
 (function(){
@@ -256,7 +258,7 @@ var NARROW = Math.min(window.innerWidth || 9999, window.screen ? window.screen.w
 var ROWS = NARROW ? 16 : 20;   // สนามสูงกี่แถว
 var COLS = NARROW ? 18 : 30;   // สนามกว้างกี่ช่อง
 var FW   = 4;                  // ก้อนบล็อกกว้าง 4 ช่อง
-var GAPW = NARROW ? 4 : 5;     // ช่องว่างระหว่างแถบก้อน (ระดับพื้นฐาน)
+var GAPW = NARROW ? 5 : 6;     // ช่องว่างระหว่างแถบก้อน (ระดับพื้นฐาน)
 var CELL = NARROW ? 30 : 26;
 var PAD  = 10;
 var GUN_W = 1;                 // เลนฐานปืน อยู่ซ้ายนอกกริด
@@ -279,7 +281,7 @@ var LEVEL_PTS = 600;
 /* ความหนาแน่น — ก้อนไล่เต็มความสูงเสมอ ปรับที่ระยะห่างเอา
    VGAP  = เว้นกี่แถวระหว่างก้อนบน-ล่างในแถบเดียวกัน (บวกสุ่มอีก 0-1)
    GAPW  = เว้นกี่คอลัมน์ระหว่างแถบ  ทั้งคู่แคบลงตามเลเวล */
-var VGAP      = 2;       // เลเวล 1 เว้น 2-3 แถว
+var VGAP      = 3;       // เลเวล 1 เว้น 3-4 แถว
 var MIN_VGAP  = 1;
 var MAX_BLOBS = 12;      // กันลูปหลุด ไม่ใช่โควตา
 var MIN_GAPW  = 3;       // ช่องว่างระหว่างแถบแคบสุด
@@ -349,8 +351,7 @@ var S = {
   lastBossLevel: 0,
   career: { games:0, clears:0, bestCombo:0, bestW:0, bestH:0 },
   waste: 0,           // กระสุนที่หลุดออกนอกสนาม/ทิ้งไป นับตั้งแต่เคลียร์ครั้งล่าสุด
-  dirty: true,        // สนามเปลี่ยน → คำนวณก้อนใหม่
-  comps: null,
+  dirty: true,        // สนามเปลี่ยน → คิดกรอบก้อนใหม่
   toast: '', toastAt: 0
 };
 
@@ -422,7 +423,12 @@ function gapWidth(){ return Math.max(MIN_GAPW, GAPW + mode().gapw - Math.floor((
 
 // คืนคอลัมน์ FW อัน (แต่ละอัน array ยาว ROWS) + คอลัมน์ว่างอีกจำนวนหนึ่ง
 // ค่าในคอลัมน์: 0 = ว่าง, k>0 = ก้อนที่ใช้สี PALETTE[k-1]
-var colorSeq = 0;
+var colorSeq = 0, blobSeq = 0;
+
+// ค่าในคอลัมน์เก็บทั้งสีและรหัสก้อนไว้ในตัวเลขเดียว: (รหัสก้อน << 3) | สี(1..6)
+function packCell(blobId, tint){ return (blobId << 3) | tint; }
+function cellFromCode(v){ return { color: PALETTE[(v & 7) - 1], blob: v >>> 3 }; }
+
 function makeFormation(){
   var grid = [], r, c;
   for (r = 0; r < ROWS; r++){ grid.push([]); for (c = 0; c < FW; c++) grid[r].push(0); }
@@ -457,9 +463,10 @@ function makeFormation(){
   for (var b = 0; b < blobs.length; b++){
     var starts = makeBlob(blobs[b].h);
     var tint = (colorSeq++ % PALETTE.length) + 1;   // ก้อนเดียวกัน = สีเดียวกัน มองออกว่าอันไหนเป็นอันเดียวกัน
+    var code = packCell(++blobSeq, tint);
     for (var i = 0; i < blobs[b].h; i++){
       var row = blobs[b].top + i;
-      for (c = starts[i]; c < FW; c++) grid[row][c] = tint;
+      for (c = starts[i]; c < FW; c++) grid[row][c] = code;
     }
   }
 
@@ -503,18 +510,20 @@ function emptyGrid(){
   return g;
 }
 
-function newCell(color){ return { color: color }; }
+// blob = 0 คือบล็อกที่ผู้เล่นยิงเข้าไปเอง, > 0 คือรหัสก้อนที่ลอยเข้ามา
+function newCell(color, blob){ return { color: color, blob: blob || 0 }; }
 
 function reset(){
   S.cells = emptyGrid();
   S.queue = [];
   bag.length = 0;
+  blobSeq = 0;
   S.level = 1;
   // เติมครึ่งขวาไว้ก่อน ให้มีอะไรให้ยิงตั้งแต่วินาทีแรก
   for (var c = Math.floor(COLS * 0.8); c < COLS; c++){
     var v = nextCol();
     for (var r = 0; r < ROWS; r++){
-      if (v[r]) S.cells[r][c] = newCell(PALETTE[v[r] - 1]);
+      if (v[r]) S.cells[r][c] = cellFromCode(v[r]);
     }
   }
   S.gunRow = ROWS >> 1;
@@ -555,7 +564,7 @@ function shiftWall(){
   }
   var v = nextCol();
   for (r = 0; r < ROWS; r++){
-    S.cells[r][COLS - 1] = v[r] ? newCell(PALETTE[v[r] - 1]) : null;
+    S.cells[r][COLS - 1] = v[r] ? cellFromCode(v[r]) : null;
   }
   S.dirty = true;
 
@@ -653,7 +662,7 @@ function settle(b){
       var c = b.col + b.cells[i][1] + 1;
       if (c >= 0 && c < COLS && S.cells[r][c]){
         var wc = b.col + b.cells[i][1];
-        if (wc >= 0 && wc < COLS && !S.cells[r][wc]){ S.cells[r][wc] = { color: b.color }; placed++; }
+        if (wc >= 0 && wc < COLS && !S.cells[r][wc]){ S.cells[r][wc] = newCell(b.color, 0); placed++; }
         else if (wc < 0){ S.waste++; }
         changed = true;
       } else keep.push(b.cells[i]);
@@ -751,7 +760,7 @@ function weld(b){
     var r = b.row + b.cells[i][0];
     var c = b.col + b.cells[i][1];
     if (c >= 0 && c < COLS && r >= 0 && r < ROWS){
-      S.cells[r][c] = { color: b.color };
+      S.cells[r][c] = newCell(b.color, 0);
       placed++;
     } else lost++;
   }
@@ -876,10 +885,133 @@ function components(){
   return out;
 }
 
-// ก้อนที่วาดกรอบช่วยเล็ง (คิดใหม่เฉพาะตอนสนามเปลี่ยน)
-function compsCached(){
-  if (S.dirty || !S.comps){ S.comps = components(); S.dirty = false; }
-  return S.comps;
+/* กรอบเดิมของแต่ละก้อน — คิดจาก "ตัวตนของก้อน" ไม่ใช่กลุ่มที่ต่อกัน
+   บล็อกที่ยิงพลาดไปเกาะข้างนอกกรอบจึงไม่ทำให้ก้อนนั้นตายถาวรอีกต่อไป */
+function blobBoxes(){
+  var map = {}, r, c, cell, bx;
+  for (r = 0; r < ROWS; r++){
+    for (c = 0; c < COLS; c++){
+      cell = S.cells[r][c];
+      if (!cell || !cell.blob) continue;
+      bx = map[cell.blob];
+      if (!bx) map[cell.blob] = { r0:r, r1:r, c0:c, c1:c, n:1, color:cell.color };
+      else {
+        if (r < bx.r0) bx.r0 = r; if (r > bx.r1) bx.r1 = r;
+        if (c < bx.c0) bx.c0 = c; if (c > bx.c1) bx.c1 = c;
+        bx.n++;
+      }
+    }
+  }
+  return map;
+}
+
+var boxCache = null;
+function boxesCached(){
+  if (S.dirty || !boxCache){ boxCache = blobBoxes(); S.dirty = false; }
+  return boxCache;
+}
+
+function hasNeighbour(r, c){
+  return !!((r > 0 && S.cells[r-1][c]) || (r < ROWS-1 && S.cells[r+1][c]) ||
+            (c > 0 && S.cells[r][c-1]) || (c < COLS-1 && S.cells[r][c+1]));
+}
+
+/* เก็บกวาดเศษที่เคลียร์ไม่ได้ตลอดกาล ไม่งั้นมันลอยไปชนเส้นแดงฟรี ๆ
+   - ก้อนที่โดนระเบิดจนเหลือแถวเดียวหรือคอลัมน์เดียว
+   - บล็อกของผู้เล่นที่ลอยเดี่ยว ไม่ติดอะไรเลย */
+function sweepDebris(){
+  var boxes = blobBoxes(), id, bx, r, c, cell, gone = 0, kill = {};
+  for (id in boxes){
+    bx = boxes[id];
+    if (bx.c1 >= COLS - 1) continue;                       // ยังไหลเข้ามาไม่ครบ
+    if (bx.c1 - bx.c0 + 1 >= 2 && bx.r1 - bx.r0 + 1 >= 2) continue;
+    kill[id] = 1;
+  }
+  for (r = 0; r < ROWS; r++){
+    for (c = 0; c < COLS - 1; c++){
+      cell = S.cells[r][c];
+      if (!cell) continue;
+      if (cell.blob ? !kill[cell.blob] : hasNeighbour(r, c)) continue;
+      burst(c, r, cell.color);
+      S.cells[r][c] = null;
+      gone++;
+    }
+  }
+  if (gone) S.dirty = true;
+  return gone;
+}
+
+function scaffoldOf(cells, claimed){
+  var stack = cells.slice(), out = [], j, key, cur, nb, r, c;
+  while (stack.length){
+    cur = stack.pop();
+    nb = [[cur[0]-1,cur[1]],[cur[0]+1,cur[1]],[cur[0],cur[1]-1],[cur[0],cur[1]+1]];
+    for (j = 0; j < 4; j++){
+      r = nb[j][0]; c = nb[j][1];
+      if (r < 0 || r >= ROWS || c < 0 || c >= COLS) continue;
+      key = r * COLS + c;
+      if (claimed[key]) continue;
+      if (!S.cells[r][c] || S.cells[r][c].blob) continue;   // เอาเฉพาะบล็อกที่ผู้เล่นยิงเอง
+      claimed[key] = 1;
+      out.push([r, c]);
+      stack.push([r, c]);
+    }
+  }
+  return out;
+}
+
+/* เป้าที่จะระเบิดรอบนี้ มีสองทาง
+   (1) ก้อนที่ลอยเข้ามา: เติมกรอบเดิมของมันจนเต็ม  ← ทางหลัก
+   (2) สี่เหลี่ยมทึบที่ผู้เล่นก่อขึ้นมาเองล้วน ๆ
+   ก้อนที่ยังไหลเข้ามาไม่ครบ (ติดขอบขวา) ไม่นับ ไม่งั้นขอบก้อนที่โผล่มาสองคอลัมน์แรก
+   บังเอิญเป็นสี่เหลี่ยมทึบพอดี แล้วระเบิดฟรีตั้งแต่ยังไม่ได้ยิง */
+function clearTargets(){
+  var claimed = {}, out = [], i, r, c, id, bx, w, h, cells, full;
+
+  var boxes = blobBoxes();
+  for (id in boxes){
+    bx = boxes[id];
+    if (bx.c1 >= COLS - 1) continue;
+    w = bx.c1 - bx.c0 + 1; h = bx.r1 - bx.r0 + 1;
+    if (w < 2 || h < 2) continue;
+    cells = []; full = true;
+    for (r = bx.r0; r <= bx.r1 && full; r++){
+      for (c = bx.c0; c <= bx.c1; c++){
+        if (!S.cells[r][c]){ full = false; break; }
+        cells.push([r, c]);
+      }
+    }
+    if (!full) continue;
+    for (i = 0; i < cells.length; i++) claimed[cells[i][0] * COLS + cells[i][1]] = 1;
+    out.push({ cells: cells, w: w, h: h });
+  }
+
+  var comps = components();
+  for (var k = 0; k < comps.length; k++){
+    var cp = comps[k];
+    if (cp.c1 >= COLS - 1 || !isSolidRect(cp)) continue;
+    var dup = false;
+    for (i = 0; i < cp.cells.length; i++) if (claimed[cp.cells[i][0] * COLS + cp.cells[i][1]]){ dup = true; break; }
+    if (dup) continue;
+    for (i = 0; i < cp.cells.length; i++) claimed[cp.cells[i][0] * COLS + cp.cells[i][1]] = 1;
+    out.push({ cells: cp.cells.slice(), w: cp.c1 - cp.c0 + 1, h: cp.r1 - cp.r0 + 1 });
+  }
+
+  /* กันไว้ก่อนเก็บนั่งร้าน: ช่องที่อยู่ในกรอบของก้อนอื่นที่ยังไม่ระเบิด คือความคืบหน้า
+     ที่ผู้เล่นอุตส่าห์เติมไว้ ห้ามโดนกวาดไปด้วย */
+  for (id in boxes){
+    bx = boxes[id];
+    for (r = bx.r0; r <= bx.r1; r++){
+      for (c = bx.c0; c <= bx.c1; c++){
+        var kk = r * COLS + c;
+        if (!claimed[kk]) claimed[kk] = 2;
+      }
+    }
+  }
+
+  // นั่งร้าน: บล็อกที่ผู้เล่นยิงไปเกาะรอบ ๆ เป้า ให้หลุดไปพร้อมกัน จะได้ไม่เหลือเศษค้าง
+  for (i = 0; i < out.length; i++) out[i].scaffold = scaffoldOf(out[i].cells, claimed);
+  return out;
 }
 
 function isSolidRect(comp){
@@ -888,30 +1020,31 @@ function isSolidRect(comp){
   return h >= 2 && w >= 2 && comp.cells.length === w * h;
 }
 
+function wipe(cell){
+  var r = cell[0], c = cell[1];
+  if (!S.cells[r][c]) return 0;
+  burst(c, r, S.cells[r][c].color);
+  S.cells[r][c] = null;
+  return 1;
+}
+
 function resolve(){
-  var chain = 0;
+  sweepDebris();
   for (;;){
-    var comps = components(), hit = [], i;
-    for (i = 0; i < comps.length; i++) if (isSolidRect(comps[i])) hit.push(comps[i]);
+    var hit = clearTargets(), i, j;
     if (!hit.length) break;
-    chain++;
 
     var count = 0, maxArea = 0, base = 0;
     for (i = 0; i < hit.length; i++){
-      var comp = hit[i];
-      var area = comp.cells.length;
-      var cw = comp.c1 - comp.c0 + 1, ch = comp.r1 - comp.r0 + 1;
+      var t = hit[i];
+      var area = t.w * t.h;
       if (area > maxArea) maxArea = area;
-      if (cw * ch > S.stats.bestW * S.stats.bestH){ S.stats.bestW = cw; S.stats.bestH = ch; }
+      if (area > S.stats.bestW * S.stats.bestH){ S.stats.bestW = t.w; S.stats.bestH = t.h; }
       /* ก้อนใหญ่ต้องคุ้มกว่าก้อนเล็กแบบทวีคูณ ไม่งั้น 4x4 ก้อนเดียว
          มีค่าเท่ากับ 2x2 สี่ก้อนเป๊ะ แล้วจะไม่มีเหตุผลให้เลือกเป้าเลย */
       base += Math.round(area * 10 * (1 + (area - 4) * BIG_BONUS));
-      for (var j = 0; j < comp.cells.length; j++){
-        var r = comp.cells[j][0], c = comp.cells[j][1];
-        burst(c, r, S.cells[r][c] ? S.cells[r][c].color : '#ffffff');
-        S.cells[r][c] = null;
-        count++;
-      }
+      for (j = 0; j < t.cells.length; j++) count += wipe(t.cells[j]);
+      for (j = 0; j < t.scaffold.length; j++) wipe(t.scaffold[j]);   // นั่งร้าน ไม่คิดคะแนน
     }
     S.dirty = true;
 
@@ -950,6 +1083,7 @@ function resolve(){
     var lv = 1 + Math.floor(S.score / LEVEL_PTS);
     if (lv > S.level){ S.level = lv; beep(1040, 0.16, 'sine', 0.06); }
     S.stepMs = Math.max(MIN_STEP, baseStep() - (S.level - 1) * STEP_DROP);
+    sweepDebris();
   }
   syncHud();
 }
@@ -1189,20 +1323,19 @@ function drawLanding(slide, blocked){
   ctx.setLineDash([]);
 }
 
-// กรอบก้อนที่ใกล้เต็ม + จุดไข่ปลาตรงช่องที่ยังขาด — บอกว่า "อีกกี่ช่องจะระเบิด"
+// กรอบเดิมของแต่ละก้อน + จุดไข่ปลาตรงช่องที่ยังขาด — บอกว่า "อีกกี่ช่องจะระเบิด"
 function drawTargets(slide){
-  var comps = compsCached();
+  var boxes = boxesCached();
   var ox = -slide * CELL;
-  for (var i = 0; i < comps.length; i++){
-    var cp = comps[i];
+  for (var id in boxes){
+    var cp = boxes[id];
+    if (cp.c1 >= COLS - 1) continue;               // ยังไหลเข้ามาไม่ครบ ยังเคลียร์ไม่ได้
     var h = cp.r1 - cp.r0 + 1, w = cp.c1 - cp.c0 + 1;
     if (h < 2 || w < 2) continue;
-    var area = w * h;
-    if (area > 40) continue;                       // ก้อนที่เชื่อมกันมั่วจนใหญ่ ไม่ต้องรก
-    var ratio = cp.cells.length / area;
-    if (ratio < 0.5) continue;
-    var color = S.cells[cp.cells[0][0]][cp.cells[0][1]];
-    color = color ? color.color : '#ffffff';
+    var area = w * h, filled = 0, r, c;
+    for (r = cp.r0; r <= cp.r1; r++) for (c = cp.c0; c <= cp.c1; c++) if (S.cells[r][c]) filled++;
+    var ratio = filled / area;
+    var color = cp.color || '#ffffff';
 
     var x = PAD + (GUN_W + cp.c0) * CELL + 1.5 + ox;
     var y = PAD + cp.r0 * CELL + 1.5;
@@ -1210,8 +1343,8 @@ function drawTargets(slide){
     ctx.strokeStyle = color; ctx.lineWidth = 1.6;
     roundRect(ctx, x, y, w * CELL - 3, h * CELL - 3, 9); ctx.stroke();
 
-    for (var r = cp.r0; r <= cp.r1; r++){
-      for (var c = cp.c0; c <= cp.c1; c++){
+    for (r = cp.r0; r <= cp.r1; r++){
+      for (c = cp.c0; c <= cp.c1; c++){
         if (S.cells[r][c]) continue;
         var mx = PAD + (GUN_W + c) * CELL + CELL / 2 + ox;
         var my = PAD + r * CELL + CELL / 2;
@@ -1270,7 +1403,7 @@ function draw(){
   }
   if (slide > 0){
     var inc = peekCol();
-    for (r = 0; r < ROWS; r++) if (inc[r]) drawBlock(COLS - slide, r, PALETTE[inc[r] - 1]);
+    for (r = 0; r < ROWS; r++) if (inc[r]) drawBlock(COLS - slide, r, PALETTE[(inc[r] & 7) - 1]);
   }
 
   drawTargets(slide);
